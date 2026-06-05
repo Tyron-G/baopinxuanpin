@@ -364,6 +364,42 @@ export interface DataConnectorsOverview {
   connectors: DataConnectorStatus[]
   chanmamaFeeds: ChanmamaFeedSample[]
   feiguaFeeds: FeiguaFeedSample[]
+  marketDataSource: string
+  lastMarketSyncAt: string
+  lastMarketSyncStatus: string
+}
+
+export interface MarketDataSyncResult {
+  success: boolean
+  message: string
+  syncedAt: string
+}
+
+export interface SupplyMatchItem {
+  supplierName: string
+  region: string
+  productTitle: string
+  unitPrice: string
+  moq: string
+  creditLevel: string
+  matchScore: number
+  matchReason: string
+}
+
+export interface TeamMemberItem {
+  id: number
+  memberName: string
+  roleLabel: string
+  email?: string
+}
+
+export interface TeamAssignmentItem {
+  id: number
+  cardId?: number | null
+  actionTitle: string
+  assigneeName: string
+  status: string
+  note?: string
 }
 
 export interface KpiMetricItem {

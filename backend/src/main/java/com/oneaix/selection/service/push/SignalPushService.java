@@ -8,7 +8,9 @@ import com.oneaix.selection.dto.PushDigestResult;
 import com.oneaix.selection.dto.SignalItem;
 import com.oneaix.selection.repository.JdbcPushChannelRepository;
 import com.oneaix.selection.repository.JdbcPushDeliveryRepository;
+import com.oneaix.selection.enums.PlatformView;
 import com.oneaix.selection.service.BrandSelectionContextLoader;
+import com.oneaix.selection.service.SignalRadarService;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -27,6 +29,7 @@ public class SignalPushService {
     private final JdbcPushChannelRepository pushChannelRepository;
     private final JdbcPushDeliveryRepository pushDeliveryRepository;
     private final BrandSelectionContextLoader contextLoader;
+    private final SignalRadarService signalRadarService;
     private final PushProperties pushProperties;
     private final RestTemplate restTemplate;
 
@@ -34,11 +37,13 @@ public class SignalPushService {
             JdbcPushChannelRepository pushChannelRepository,
             JdbcPushDeliveryRepository pushDeliveryRepository,
             BrandSelectionContextLoader contextLoader,
+            SignalRadarService signalRadarService,
             PushProperties pushProperties
     ) {
         this.pushChannelRepository = pushChannelRepository;
         this.pushDeliveryRepository = pushDeliveryRepository;
         this.contextLoader = contextLoader;
+        this.signalRadarService = signalRadarService;
         this.pushProperties = pushProperties;
         this.restTemplate = new RestTemplate();
     }
@@ -57,7 +62,7 @@ public class SignalPushService {
 
     public PushDigestResult pushTodayDigest(Long brandId) {
         BrandSelectionContext context = contextLoader.load(brandId);
-        List<SignalItem> signals = context.signals();
+        List<SignalItem> signals = signalRadarService.signals(brandId, PlatformView.ALL.getLabel());
         List<PushChannelConfig> channels = pushChannelRepository.listEnabled(brandId);
         if (channels.isEmpty()) {
             return new PushDigestResult(false, "未配置已启用的推送渠道", signals.size(), List.of(), List.of());

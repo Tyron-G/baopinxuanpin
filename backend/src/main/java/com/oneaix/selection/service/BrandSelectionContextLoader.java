@@ -17,18 +17,15 @@ import java.util.Set;
 public class BrandSelectionContextLoader {
     private final InsightCardQueryService cardQueryService;
     private final InsightCardCatalogService catalogService;
-    private final SignalRadarService signalRadarService;
     private final RequestScopedSelectionContext requestScope;
 
     public BrandSelectionContextLoader(
             InsightCardQueryService cardQueryService,
             InsightCardCatalogService catalogService,
-            SignalRadarService signalRadarService,
             RequestScopedSelectionContext requestScope
     ) {
         this.cardQueryService = cardQueryService;
         this.catalogService = catalogService;
-        this.signalRadarService = signalRadarService;
         this.requestScope = requestScope;
     }
 
@@ -38,13 +35,7 @@ public class BrandSelectionContextLoader {
             List<InsightCard> catalog = catalogService.loadCatalog();
             Set<String> visible = cardQueryService.visibleCategories(brand, catalog);
             List<InsightCardView> cards = cardQueryService.rankedViews(brand, catalog);
-            return new BrandSelectionContext(
-                    brand,
-                    catalog,
-                    visible,
-                    cards,
-                    signalRadarService.buildSignals(brand, cards)
-            );
+            return new BrandSelectionContext(brand, catalog, visible, cards);
         });
     }
 }

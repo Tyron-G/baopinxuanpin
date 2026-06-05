@@ -2,7 +2,12 @@
   <section v-if="overview" class="panel pad connectors-panel">
     <span class="eyebrow">第三方数据源（样例已接入）</span>
     <h2>蝉妈妈 · 飞瓜 · 1688 · 专利检索</h2>
-    <p class="connectors-note">以下为演示用样例同步状态与 feed，非真实 API 密钥对接。</p>
+    <p class="connectors-note">
+      市场数据源：<b>{{ overview.marketDataSource }}</b> · 最近同步 {{ overview.lastMarketSyncAt }}（{{ overview.lastMarketSyncStatus }}）
+    </p>
+    <div class="sync-row">
+      <el-button type="primary" :loading="syncing" @click="syncMarket">拉取外部市场 API（需配置后端）</el-button>
+    </div>
 
     <div class="connector-status-grid">
       <article v-for="item in overview.connectors" :key="item.provider">
@@ -42,13 +47,29 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { api } from '@/api'
+import { getBrandId } from '@/composables/useBrandContext'
 import type { DataConnectorsOverview } from '@/types'
+import { ElMessage } from 'element-plus'
 
 const overview = ref<DataConnectorsOverview>()
+const syncing = ref(false)
 
-onMounted(async () => {
+async function refresh() {
   overview.value = await api.getDataConnectors()
-})
+}
+
+async function syncMarket() {
+  syncing.value = true
+  try {
+    const result = await api.syncMarketData(getBrandId())
+    ElMessage[result.success ? 'success' : 'warning'](result.message)
+    await refresh()
+  } finally {
+    syncing.value = false
+  }
+}
+
+onMounted(refresh)
 </script>
 
 <style scoped>
@@ -60,6 +81,10 @@ onMounted(async () => {
   margin: 8px 0 0;
   color: var(--muted);
   line-height: 1.7;
+}
+
+.sync-row {
+  margin: 12px 0 4px;
 }
 
 .connector-status-grid {

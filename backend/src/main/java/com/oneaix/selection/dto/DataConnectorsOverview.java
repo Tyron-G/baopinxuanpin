@@ -6,6 +6,9 @@ import java.util.List;
 public record DataConnectorsOverview(
         List<DataConnectorStatus> connectors,
         List<ChanmamaFeedSample> chanmamaFeeds,
-        List<FeiguaFeedSample> feiguaFeeds
+        List<FeiguaFeedSample> feiguaFeeds,
+        String marketDataSource,
+        String lastMarketSyncAt,
+        String lastMarketSyncStatus
 ) {
 }

@@ -29,18 +29,27 @@ public class InsightController {
     }
 
     @GetMapping("/trend")
-    public List<CategoryTrend> trends(@RequestParam(defaultValue = ApiConstants.DEFAULT_BRAND_ID_PARAM) @Min(1) Long brandId) {
-        return insightService.trends(brandId);
+    public List<CategoryTrend> trends(
+            @RequestParam(defaultValue = ApiConstants.DEFAULT_BRAND_ID_PARAM) @Min(1) Long brandId,
+            @RequestParam(required = false) String platform
+    ) {
+        return insightService.trends(brandId, platform);
     }
 
     @GetMapping("/competition")
-    public List<CompetitionData> competition(@RequestParam(defaultValue = ApiConstants.DEFAULT_BRAND_ID_PARAM) @Min(1) Long brandId) {
-        return insightService.competition(brandId);
+    public List<CompetitionData> competition(
+            @RequestParam(defaultValue = ApiConstants.DEFAULT_BRAND_ID_PARAM) @Min(1) Long brandId,
+            @RequestParam(required = false) String platform
+    ) {
+        return insightService.competition(brandId, platform);
     }
 
     @GetMapping("/supply-demand")
-    public List<SupplyDemand> supplyDemand(@RequestParam(defaultValue = ApiConstants.DEFAULT_BRAND_ID_PARAM) @Min(1) Long brandId) {
-        return insightService.supplyDemand(brandId);
+    public List<SupplyDemand> supplyDemand(
+            @RequestParam(defaultValue = ApiConstants.DEFAULT_BRAND_ID_PARAM) @Min(1) Long brandId,
+            @RequestParam(required = false) String platform
+    ) {
+        return insightService.supplyDemand(brandId, platform);
     }
 
     @GetMapping("/cards")

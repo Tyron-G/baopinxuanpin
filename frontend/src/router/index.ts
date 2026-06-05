@@ -14,6 +14,8 @@ const router = createRouter({
     { path: '/brand-model', name: 'brand-model', component: () => import('@/views/BrandModel.vue') },
     { path: '/test-run', name: 'test-run', component: () => import('@/views/TestRunOptimization.vue') },
     { path: '/open-api', name: 'open-api', component: () => import('@/views/OpenApiConsole.vue') },
+    { path: '/supply-match', name: 'supply-match', component: () => import('@/views/SupplyMatch.vue') },
+    { path: '/team', name: 'team', component: () => import('@/views/TeamWorkspace.vue') },
     { path: '/opportunity/:cardId', name: 'opportunity', component: () => import('@/views/Opportunity.vue'), props: true },
     { path: '/report/:cardId', name: 'report', component: () => import('@/views/ReportPreview.vue'), props: true }
   ]

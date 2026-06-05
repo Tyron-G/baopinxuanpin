@@ -1,6 +1,5 @@
 package com.oneaix.selection.service.insight;
 
-import com.oneaix.selection.content.CategoryPlaybookRegistry;
 import com.oneaix.selection.dto.CompetitorShop;
 import com.oneaix.selection.dto.InsightCardView;
 import com.oneaix.selection.dto.ScoreBreakdown;
@@ -26,7 +25,7 @@ class PainPointListBuilderTest {
     private CompetitorService competitorService;
 
     @Test
-    void shouldPreferComplaintTopicsOverPlaybook() {
+    void shouldBuildFromComplaintTopics() {
         when(competitorService.list(1L)).thenReturn(List.of(
                 new CompetitorShop(
                         "小佩宠物旗舰店",
@@ -36,21 +35,15 @@ class PainPointListBuilderTest {
                         List.of("卡粮", "噪音"), List.of()
                 )
         ));
-        PainPointListBuilder builder = new PainPointListBuilder(
-                new CategoryPlaybookRegistry(),
-                new CompetitorComplaintAggregator(competitorService)
-        );
+        PainPointListBuilder builder = new PainPointListBuilder(new CompetitorComplaintAggregator(competitorService));
         var items = builder.build(1L, List.of(view("宠物智能用品")));
         assertEquals("卡粮", items.get(0).topic());
-        assertTrue(items.get(0).summary().contains("跟踪竞品"));
+        assertTrue(items.get(0).summary().contains("竞品样本"));
     }
 
     @Test
     void shouldReturnEmptyWhenNoCards() {
-        PainPointListBuilder builder = new PainPointListBuilder(
-                new CategoryPlaybookRegistry(),
-                new CompetitorComplaintAggregator(competitorService)
-        );
+        PainPointListBuilder builder = new PainPointListBuilder(new CompetitorComplaintAggregator(competitorService));
         assertTrue(builder.build(1L, List.of()).isEmpty());
     }
 

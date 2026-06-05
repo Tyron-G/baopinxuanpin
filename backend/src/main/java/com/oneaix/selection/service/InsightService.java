@@ -37,16 +37,16 @@ public class InsightService {
         this.summaryAssembler = summaryAssembler;
     }
 
-    public List<CategoryTrend> trends(Long brandId) {
-        return marketDataService.trends(visibleFor(brandId));
+    public List<CategoryTrend> trends(Long brandId, String platform) {
+        return marketDataService.trends(visibleFor(brandId), platform);
     }
 
-    public List<CompetitionData> competition(Long brandId) {
-        return marketDataService.competition(visibleFor(brandId));
+    public List<CompetitionData> competition(Long brandId, String platform) {
+        return marketDataService.competition(visibleFor(brandId), platform);
     }
 
-    public List<SupplyDemand> supplyDemand(Long brandId) {
-        return marketDataService.supplyDemand(visibleFor(brandId));
+    public List<SupplyDemand> supplyDemand(Long brandId, String platform) {
+        return marketDataService.supplyDemand(visibleFor(brandId), platform);
     }
 
     public List<InsightCardView> cards(Long brandId, String platform) {
@@ -64,9 +64,9 @@ public class InsightService {
                 context.catalog(),
                 visible,
                 rankedCards,
-                marketDataService.trends(visible),
-                marketDataService.competition(visible),
-                marketDataService.supplyDemand(visible),
+                marketDataService.trends(visible, platform),
+                marketDataService.competition(visible, platform),
+                marketDataService.supplyDemand(visible, platform),
                 platform
         ));
     }

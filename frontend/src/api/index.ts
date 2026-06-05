@@ -11,7 +11,11 @@ import type {
   DashboardSummary,
   DataConnectorsOverview,
   ProductMetricsKpi,
+  MarketDataSyncResult,
   PushDeliveryRecord,
+  SupplyMatchItem,
+  TeamAssignmentItem,
+  TeamMemberItem,
   InsightCardView,
   InsightSummary,
   OpportunityDetail,
@@ -35,11 +39,19 @@ export const api = {
   getBrand(id: number) {
     return http.get<BrandInfo>(`/brand/${id}`).then((res) => res.data)
   },
-  getDashboard(brandId?: number) {
-    return http.get<DashboardSummary>('/dashboard', { params: { brandId: resolveBrandId(brandId) } }).then((res) => res.data)
+  getDashboard(brandId?: number, platform?: string) {
+    return http
+      .get<DashboardSummary>('/dashboard', {
+        params: { brandId: resolveBrandId(brandId), platform: platform || undefined }
+      })
+      .then((res) => res.data)
   },
-  getWorkflow(brandId?: number) {
-    return http.get<WorkflowProgress>('/dashboard/workflow', { params: { brandId: resolveBrandId(brandId) } }).then((res) => res.data)
+  getWorkflow(brandId?: number, platform?: string) {
+    return http
+      .get<WorkflowProgress>('/dashboard/workflow', {
+        params: { brandId: resolveBrandId(brandId), platform: platform || undefined }
+      })
+      .then((res) => res.data)
   },
   getProductMetrics() {
     return http.get<ProductMetricsKpi>('/dashboard/product-metrics').then((res) => res.data)
@@ -47,14 +59,61 @@ export const api = {
   getDataConnectors() {
     return http.get<DataConnectorsOverview>('/connectors/overview').then((res) => res.data)
   },
-  getTrends(brandId?: number) {
-    return http.get<CategoryTrend[]>('/insight/trend', { params: { brandId: resolveBrandId(brandId) } }).then((res) => res.data)
+  getTrends(brandId?: number, platform?: string) {
+    return http
+      .get<CategoryTrend[]>('/insight/trend', {
+        params: { brandId: resolveBrandId(brandId), platform: platform || undefined }
+      })
+      .then((res) => res.data)
   },
-  getCompetition(brandId?: number) {
-    return http.get<CompetitionData[]>('/insight/competition', { params: { brandId: resolveBrandId(brandId) } }).then((res) => res.data)
+  getCompetition(brandId?: number, platform?: string) {
+    return http
+      .get<CompetitionData[]>('/insight/competition', {
+        params: { brandId: resolveBrandId(brandId), platform: platform || undefined }
+      })
+      .then((res) => res.data)
   },
-  getSupplyDemand(brandId?: number) {
-    return http.get<SupplyDemand[]>('/insight/supply-demand', { params: { brandId: resolveBrandId(brandId) } }).then((res) => res.data)
+  getSupplyDemand(brandId?: number, platform?: string) {
+    return http
+      .get<SupplyDemand[]>('/insight/supply-demand', {
+        params: { brandId: resolveBrandId(brandId), platform: platform || undefined }
+      })
+      .then((res) => res.data)
+  },
+  syncMarketData(brandId?: number, platform?: string) {
+    return http
+      .post<MarketDataSyncResult>('/connectors/sync-market', null, {
+        params: { brandId: resolveBrandId(brandId), platform: platform || undefined }
+      })
+      .then((res) => res.data)
+  },
+  getSupplyMatches(brandId: number, cardId: number, platform = DEFAULT_PLATFORM_VIEW) {
+    return http
+      .get<SupplyMatchItem[]>('/supply/matches', {
+        params: { brandId, cardId, platform }
+      })
+      .then((res) => res.data)
+  },
+  getTeamMembers(brandId?: number) {
+    return http.get<TeamMemberItem[]>('/team/members', { params: { brandId: resolveBrandId(brandId) } }).then((res) => res.data)
+  },
+  addTeamMember(brandId: number, payload: { memberName: string; roleLabel: string; email?: string }) {
+    return http
+      .post<TeamMemberItem>('/team/members', null, { params: { brandId, ...payload } })
+      .then((res) => res.data)
+  },
+  getTeamAssignments(brandId?: number) {
+    return http
+      .get<TeamAssignmentItem[]>('/team/assignments', { params: { brandId: resolveBrandId(brandId) } })
+      .then((res) => res.data)
+  },
+  assignTeamTask(
+    brandId: number,
+    payload: { cardId?: number; actionTitle: string; assigneeName: string; status?: string; note?: string }
+  ) {
+    return http
+      .post<TeamAssignmentItem>('/team/assignments', null, { params: { brandId, ...payload } })
+      .then((res) => res.data)
   },
   getInsightCards(brandId?: number, platform?: string) {
     return http

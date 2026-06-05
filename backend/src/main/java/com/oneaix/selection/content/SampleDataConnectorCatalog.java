@@ -29,7 +29,10 @@ public class SampleDataConnectorCatalog {
                         new FeiguaFeedSample("「猫咪分离焦虑」远程陪伴实测", "宠物智能用品", "+92%", "腰部达人", "#宠物焦虑 #智能喂食"),
                         new FeiguaFeedSample("办公室 3 分钟手压浓缩咖啡", "便携式咖啡器具", "+57%", "尾部达人", "#咖啡自由 #便携咖啡"),
                         new FeiguaFeedSample("亚马逊轻小件收纳爆款拆解", "跨境家居收纳", "+63%", "头部达人", "#跨境家居 #收纳神器")
-                )
+                ),
+                "jdbc-sample",
+                "-",
+                "未同步"
         );
     }
 }

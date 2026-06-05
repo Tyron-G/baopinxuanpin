@@ -14,8 +14,7 @@ public record BrandSelectionContext(
         BrandInfo brand,
         List<InsightCard> catalog,
         Set<String> visibleCategoryNames,
-        List<InsightCardView> cards,
-        List<SignalItem> signals
+        List<InsightCardView> cards
 ) {
     public Optional<InsightCardView> findCard(Long cardId) {
         if (cardId == null) {

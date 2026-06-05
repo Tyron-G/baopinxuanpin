@@ -96,15 +96,23 @@ const navItems = computed(() => [
   { label: '测款优化', hint: '第7天复盘', path: '/test-run', to: { path: '/test-run', query: { brandId: brandId.value } } },
   { label: '开放 API', hint: '联调控制台', path: '/open-api', to: { path: '/open-api', query: { brandId: brandId.value } } },
   { label: '归因报告', hint: '迭代2', path: '/attribution', to: { path: '/attribution', query: { brandId: brandId.value } } },
-  { label: '品牌模型', hint: '专属权重', path: '/brand-model', to: { path: '/brand-model', query: { brandId: brandId.value } } }
+  { label: '品牌模型', hint: '专属权重', path: '/brand-model', to: { path: '/brand-model', query: { brandId: brandId.value } } },
+  { label: '供应链匹配', hint: 'P2', path: '/supply-match', to: { path: '/supply-match', query: { brandId: brandId.value } } },
+  { label: '团队协作', hint: 'P2', path: '/team', to: { path: '/team', query: { brandId: brandId.value } } }
 ])
+
+const shellPlatform = computed(() => {
+  const raw = route.query.platform
+  return typeof raw === 'string' && raw.trim() ? raw : '全平台'
+})
 
 async function loadShellData() {
   const id = brandId.value
   setBrandId(id)
+  const platform = shellPlatform.value
   const [dash, flow, metrics] = await Promise.all([
-    api.getDashboard(id),
-    api.getWorkflow(id),
+    api.getDashboard(id, platform),
+    api.getWorkflow(id, platform),
     api.getProductMetrics()
   ])
   dashboard.value = dash
@@ -114,4 +122,5 @@ async function loadShellData() {
 
 onMounted(loadShellData)
 watch(() => route.query.brandId, loadShellData)
+watch(shellPlatform, loadShellData)
 </script>

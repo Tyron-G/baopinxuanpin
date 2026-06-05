@@ -28,13 +28,19 @@ public class DashboardController {
     }
 
     @GetMapping
-    public DashboardSummary summary(@RequestParam(defaultValue = ApiConstants.DEFAULT_BRAND_ID_PARAM) @Min(1) Long brandId) {
-        return dashboardService.summary(brandId);
+    public DashboardSummary summary(
+            @RequestParam(defaultValue = ApiConstants.DEFAULT_BRAND_ID_PARAM) @Min(1) Long brandId,
+            @RequestParam(required = false) String platform
+    ) {
+        return dashboardService.summary(brandId, platform);
     }
 
     @GetMapping("/workflow")
-    public WorkflowProgress workflow(@RequestParam(defaultValue = ApiConstants.DEFAULT_BRAND_ID_PARAM) @Min(1) Long brandId) {
-        return dashboardService.workflow(brandId);
+    public WorkflowProgress workflow(
+            @RequestParam(defaultValue = ApiConstants.DEFAULT_BRAND_ID_PARAM) @Min(1) Long brandId,
+            @RequestParam(required = false) String platform
+    ) {
+        return dashboardService.workflow(brandId, platform);
     }
 
     @GetMapping("/product-metrics")

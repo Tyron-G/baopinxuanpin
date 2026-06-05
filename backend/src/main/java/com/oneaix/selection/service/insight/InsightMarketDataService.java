@@ -20,14 +20,26 @@ public class InsightMarketDataService {
     }
 
     public List<CategoryTrend> trends(Set<String> visibleCategories) {
-        return marketDataRepository.findTrendsByCategories(visibleCategories);
+        return trends(visibleCategories, null);
+    }
+
+    public List<CategoryTrend> trends(Set<String> visibleCategories, String platform) {
+        return marketDataRepository.findTrendsByCategories(visibleCategories, platform);
     }
 
     public List<CompetitionData> competition(Set<String> visibleCategories) {
-        return marketDataRepository.findCompetitionByCategories(visibleCategories);
+        return competition(visibleCategories, null);
+    }
+
+    public List<CompetitionData> competition(Set<String> visibleCategories, String platform) {
+        return marketDataRepository.findCompetitionByCategories(visibleCategories, platform);
     }
 
     public List<SupplyDemand> supplyDemand(Set<String> visibleCategories) {
-        return marketDataRepository.findSupplyDemandByCategories(visibleCategories);
+        return supplyDemand(visibleCategories, null);
+    }
+
+    public List<SupplyDemand> supplyDemand(Set<String> visibleCategories, String platform) {
+        return marketDataRepository.findSupplyDemandByCategories(visibleCategories, platform);
     }
 }

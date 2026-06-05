@@ -72,7 +72,7 @@ class ReportExportAssemblerTest {
         when(detail.supplyChainFeasibility()).thenReturn(mock(com.oneaix.selection.dto.SupplyChainFeasibility.class));
 
         BrandSelectionContext context = new BrandSelectionContext(
-                brand, List.of(card), java.util.Set.of("宠物智能用品"), List.of(), List.of());
+                brand, List.of(card), java.util.Set.of("宠物智能用品"), List.of());
 
         ReportExportAssembler assembler = new ReportExportAssembler(
                 contentAssembler, markdownRenderer, cardQueryService, signalRadarService, clock);

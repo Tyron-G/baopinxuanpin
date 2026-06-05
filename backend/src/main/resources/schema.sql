@@ -1,3 +1,5 @@
+DROP TABLE IF EXISTS team_assignment;
+DROP TABLE IF EXISTS team_member;
 DROP TABLE IF EXISTS watchlist_item;
 DROP TABLE IF EXISTS push_delivery_log;
 DROP TABLE IF EXISTS push_channel_config;
@@ -181,4 +183,24 @@ CREATE TABLE brand_selection_model (
   model_version VARCHAR(40) NOT NULL,
   training_summary VARCHAR(500) NOT NULL,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE team_member (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  brand_id BIGINT NOT NULL,
+  member_name VARCHAR(80) NOT NULL,
+  role_label VARCHAR(40) NOT NULL,
+  email VARCHAR(120),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE team_assignment (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  brand_id BIGINT NOT NULL,
+  card_id BIGINT,
+  action_title VARCHAR(200) NOT NULL,
+  assignee_name VARCHAR(80) NOT NULL,
+  status VARCHAR(40) NOT NULL,
+  note VARCHAR(500),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

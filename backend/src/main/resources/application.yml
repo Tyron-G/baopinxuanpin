@@ -52,6 +52,15 @@ selection:
     version: 0.0.1-SNAPSHOT
     release-date: 2026-06-04
     sample-data-version: 2026-06-04
+  market-data:
+    mode: jdbc-only
+    external:
+      enabled: false
+      base-url: ""
+      api-key: ""
+      trends-path: /market/trends
+      competition-path: /market/competition
+      supply-path: /market/supply-demand
   open-api:
     key: selection-open-demo
   push:

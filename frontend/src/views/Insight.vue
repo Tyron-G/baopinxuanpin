@@ -486,9 +486,9 @@ const emptyStateSubtitle = computed(() => {
 async function loadInsight() {
   const id = brandId.value
   const [trendRows, competitionRows, supplyRows, cardRows, summaryRow, workflowData] = await Promise.all([
-    api.getTrends(id),
-    api.getCompetition(id),
-    api.getSupplyDemand(id),
+    api.getTrends(id, activePlatform.value),
+    api.getCompetition(id, activePlatform.value),
+    api.getSupplyDemand(id, activePlatform.value),
     api.getInsightCards(id, activePlatform.value),
     api.getInsightSummary(id, activePlatform.value),
     api.getWorkflow(id)
@@ -529,12 +529,18 @@ watch(
 )
 watch(activePlatform, async (platform) => {
   if (!brandId.value) return
-  const [summaryRow, cardRows] = await Promise.all([
+  const [summaryRow, cardRows, trendRows, competitionRows, supplyRows] = await Promise.all([
     api.getInsightSummary(brandId.value, platform),
-    api.getInsightCards(brandId.value, platform)
+    api.getInsightCards(brandId.value, platform),
+    api.getTrends(brandId.value, platform),
+    api.getCompetition(brandId.value, platform),
+    api.getSupplyDemand(brandId.value, platform)
   ])
   summary.value = summaryRow
   cards.value = cardRows
+  trends.value = trendRows
+  competition.value = competitionRows
+  supplyDemand.value = supplyRows
   await nextTick()
   resizeActiveChart()
 })
