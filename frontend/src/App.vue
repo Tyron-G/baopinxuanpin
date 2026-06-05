@@ -67,9 +67,9 @@
       <main class="workspace">
         <WorkflowStepper
           :current="currentStep"
-          :best-card-id="dashboard?.bestCardId"
-          :best-category-name="dashboard?.topCategory"
-          :best-score="dashboard?.bestScore"
+          :best-card-id="stepperBestCardId"
+          :best-category-name="stepperBestCategory"
+          :best-score="stepperBestScore"
           :workflow="workflow"
         />
         <RouterView />
@@ -133,22 +133,61 @@ const shellPlatform = computed(() => {
   return typeof raw === 'string' && raw.trim() ? raw : '全平台'
 })
 
+const flowCardId = computed(() => {
+  const match = route.path.match(/^\/(?:report|opportunity)\/(\d+)/)
+  return match ? Number(match[1]) : null
+})
+
+const flowCategoryName = ref<string>()
+const flowBestScore = ref<number>()
+
+const stepperBestCardId = computed(() => flowCardId.value ?? dashboard.value?.bestCardId ?? null)
+const stepperBestCategory = computed(() => {
+  const flowName = flowCategoryName.value?.trim()
+  if (flowName) return flowName
+  return dashboard.value?.topCategory
+})
+const stepperBestScore = computed(() => flowBestScore.value ?? dashboard.value?.bestScore)
+
+async function resolveFlowContext() {
+  const cardId = flowCardId.value
+  if (!cardId) {
+    flowCategoryName.value = undefined
+    flowBestScore.value = undefined
+    return
+  }
+  if (dashboard.value?.bestCardId === cardId && dashboard.value?.topCategory) {
+    flowCategoryName.value = dashboard.value.topCategory
+    flowBestScore.value = dashboard.value.bestScore
+    return
+  }
+  try {
+    const detail = await api.getOpportunity(cardId, brandId.value, shellPlatform.value)
+    flowCategoryName.value = detail.insightCard.categoryName
+    flowBestScore.value = detail.points?.[0]?.opportunityScore
+  } catch {
+    flowCategoryName.value = undefined
+    flowBestScore.value = undefined
+  }
+}
+
 async function loadShellData() {
   const id = brandId.value
   setBrandId(id)
   const platform = shellPlatform.value
-  const [dash, flow, metrics, promise, workspaceRows] = await Promise.all([
+  const results = await Promise.allSettled([
     api.getDashboard(id, platform),
     api.getWorkflow(id, platform),
     api.getProductMetrics(id),
     api.getCorePromiseMetrics(id),
     api.listBrandWorkspaces(id)
   ])
-  dashboard.value = dash
-  workflow.value = flow
-  productMetrics.value = metrics
-  corePromise.value = promise
-  workspaces.value = workspaceRows
+  if (results[0].status === 'fulfilled') dashboard.value = results[0].value
+  if (results[1].status === 'fulfilled') workflow.value = results[1].value
+  if (results[2].status === 'fulfilled') productMetrics.value = results[2].value
+  if (results[3].status === 'fulfilled') corePromise.value = results[3].value
+  if (results[4].status === 'fulfilled') workspaces.value = results[4].value
+  await resolveFlowContext()
 }
 
 function switchWorkspace(nextId: number) {
@@ -160,4 +199,7 @@ function switchWorkspace(nextId: number) {
 onMounted(loadShellData)
 watch(() => route.query.brandId, loadShellData)
 watch(shellPlatform, loadShellData)
+watch(() => route.path, () => {
+  void resolveFlowContext()
+})
 </script>

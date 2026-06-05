@@ -1,6 +1,7 @@
 <template>
   <section>
     <PageHero eyebrow="机会榜单" title="TOP50 潜力品机会榜" description="按机会分数排序，每个品标注推荐原因与卖点建议（MVP P0）。" />
+    <WorkflowSummary current-stage="ranking" :workflow="workflow" />
     <section v-if="loading" class="panel pad"><el-skeleton :rows="8" animated /></section>
     <section v-else class="panel pad">
       <div class="rank-toolbar">
@@ -52,14 +53,16 @@ import { useRoute, useRouter } from 'vue-router'
 import { api } from '@/api'
 import { getBrandId } from '@/composables/useBrandContext'
 import { DEFAULT_PLATFORM_VIEW } from '@/constants/brand'
-import type { CategoryTrend, OpportunityRankItem, OpportunityRankingPage } from '@/types'
+import type { CategoryTrend, OpportunityRankItem, OpportunityRankingPage, WorkflowProgress } from '@/types'
 import PageHero from '@/components/common/PageHero.vue'
+import WorkflowSummary from '@/components/common/WorkflowSummary.vue'
 import { getApiErrorMessage } from '@/lib/apiError'
 import { ElMessage } from 'element-plus'
 
 const route = useRoute()
 const router = useRouter()
 const loading = ref(true)
+const workflow = ref<WorkflowProgress>()
 const page = ref<OpportunityRankingPage>()
 const items = ref<OpportunityRankItem[]>([])
 const trends = ref<CategoryTrend[]>([])
@@ -78,8 +81,14 @@ async function loadTrends() {
 async function load() {
   loading.value = true
   try {
-    page.value = await api.getTop50Ranking(getBrandId(), 1, 50, activePlatform.value)
-    items.value = page.value.items
+    const brandId = getBrandId()
+    const [rankingPage, workflowData] = await Promise.all([
+      api.getTop50Ranking(brandId, 1, 50, activePlatform.value),
+      api.getWorkflow(brandId, activePlatform.value)
+    ])
+    page.value = rankingPage
+    items.value = rankingPage.items
+    workflow.value = workflowData
   } catch (error) {
     ElMessage.error(getApiErrorMessage(error))
   } finally {

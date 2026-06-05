@@ -34,6 +34,9 @@ class SelectionEnumsTest {
     @Test
     void workflowStageShouldAdvance() {
         assertEquals(WorkflowStageKey.RADAR, WorkflowStageKey.DATA_PREP.nextStage());
+        assertEquals(WorkflowStageKey.RANKING, WorkflowStageKey.INSIGHT.nextStage());
+        assertEquals(WorkflowStageKey.OPPORTUNITY, WorkflowStageKey.RANKING.nextStage());
         assertEquals(WorkflowStageStatus.DONE.getCode(), WorkflowStageKey.DATA_PREP.statusComparedTo(WorkflowStageKey.INSIGHT));
+        assertEquals(WorkflowStageStatus.PENDING.getCode(), WorkflowStageKey.RANKING.statusComparedTo(WorkflowStageKey.INSIGHT));
     }
 }

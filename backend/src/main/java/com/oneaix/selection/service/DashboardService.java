@@ -130,7 +130,7 @@ public class DashboardService {
             return WorkflowStageKey.RADAR;
         }
         if (opportunityCount <= 0) {
-            return WorkflowStageKey.INSIGHT;
+            return WorkflowStageKey.RANKING;
         }
         return WorkflowStageKey.OPPORTUNITY;
     }

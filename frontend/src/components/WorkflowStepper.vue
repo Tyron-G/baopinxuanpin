@@ -8,14 +8,19 @@
       </div>
       <div class="flow-head-side">
         <div class="flow-progress">
-          <span>已完成进度</span>
-          <b>{{ completedStepCount }}/{{ steps.length }}</b>
+          <span>流程进度</span>
+          <b>{{ activeStepCount }}/{{ steps.length }}</b>
           <small>{{ progressText }}</small>
         </div>
-        <div v-if="nextStageLabel" class="next-stage">
+        <div v-if="nextStageLabel && !isFinalStep" class="next-stage">
           <span>下一步</span>
           <b>{{ nextStageLabel }}</b>
           <small>{{ nextStageSummary }}</small>
+        </div>
+        <div v-else-if="isFinalStep" class="next-stage next-stage--done">
+          <span>流程状态</span>
+          <b>已到终态</b>
+          <small>本轮选品判断已推进至报告输出，可导出或返回机会页复核。</small>
         </div>
       </div>
     </div>
@@ -25,15 +30,22 @@
         <b>{{ currentLabel }}</b>
         <small>{{ currentStageSummary }}</small>
       </article>
-      <article>
+      <article class="best-opportunity-card">
         <span>最佳机会</span>
-        <b>{{ bestCategoryLabel }}</b>
+        <RouterLink
+          v-if="bestCardId"
+          :to="bestOpportunityLink"
+          class="best-opportunity-link"
+         >
+          <b>{{ bestCategoryLabel }}</b>
+        </RouterLink>
+        <b v-else>{{ bestCategoryLabel }}</b>
         <small>{{ bestOpportunityHint }}</small>
       </article>
       <article>
         <span>当前判断</span>
         <b>{{ activeStepStatusLabel }}</b>
-        <small>{{ progressText }}</small>
+        <small>{{ judgmentHint }}</small>
       </article>
     </div>
     <ol class="flow-steps">
@@ -59,6 +71,13 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { getBrandId } from '@/composables/useBrandContext'
 import { resolvePlatform } from '@/composables/usePlatformContext'
+import {
+  PRODUCT_PATH_STEPS,
+  PRODUCT_PATH_TOTAL,
+  computeProductPathProgress,
+  resolveProductPathStage,
+  routeBasedStepStatus
+} from '@/constants/productPath'
 
 const props = defineProps<{
   current: string
@@ -74,43 +93,58 @@ const brandId = computed(() => {
   return Number.isFinite(queryId) && queryId > 0 ? queryId : getBrandId()
 })
 
-const baseSteps = [
-  { name: 'data-prep', title: '数据准备' },
-  { name: 'radar', title: '信号雷达' },
-  { name: 'insight', title: '洞察发现' },
-  { name: 'ranking', title: '机会榜单' },
-  { name: 'opportunity', title: '爆品机会' },
-  { name: 'report', title: '选品报告' }
-]
-
 const routePlatform = computed(() => resolvePlatform(route.query.platform))
+
+const bestCardId = computed(() => {
+  if (props.bestCardId != null && props.bestCardId > 0) {
+    return props.bestCardId
+  }
+  return null
+})
+
+const bestOpportunityLink = computed(() => ({
+  path: `/opportunity/${bestCardId.value}`,
+  query: { brandId: brandId.value, platform: routePlatform.value }
+}))
 
 const bestCategoryLabel = computed(() => {
   const name = props.bestCategoryName?.trim()
   if (name && name !== '-') return name
-  if (props.bestCardId) return `候选 #${props.bestCardId}`
+  if (bestCardId.value) return `候选 #${bestCardId.value}`
   return '待生成'
 })
 
 const bestOpportunityHint = computed(() => {
   const name = props.bestCategoryName?.trim()
   if (name && name !== '-' && props.bestScore) {
-    return `机会分 ${props.bestScore} · 点击进入机会与报告页`
+    return `机会分 ${props.bestScore} · 点击跳转机会详情`
   }
-  if (props.bestCardId) {
-    return `卡片 #${props.bestCardId} · 完成洞察后自动更新`
+  if (name && name !== '-') {
+    return '当前报告对应赛道 · 点击跳转机会详情'
+  }
+  if (bestCardId.value) {
+    return `卡片 #${bestCardId.value} · 完成洞察后自动更新`
   }
   return '完成数据准备与洞察分析后显示最佳候选'
 })
 
+const baseSteps = PRODUCT_PATH_STEPS.map(({ key, title }) => ({ name: key, title }))
+
+const pathProgress = computed(() => computeProductPathProgress(props.current))
+const currentRouteIndex = computed(() => pathProgress.value.index)
+
+function routeBasedStatus(stepName: string) {
+  return routeBasedStepStatus(stepName, props.current)
+}
+
 const steps = computed(() => baseSteps.map((step, index) => {
-  const workflowStage = props.workflow?.stages.find((item) => item.key === step.name)
+  const stageDetail = resolveProductPathStage(step.name, props.workflow?.stages)
   const baseQuery = { brandId: brandId.value, platform: routePlatform.value }
   return {
     ...step,
     index: index + 1,
-    status: workflowStage?.status ?? fallbackStatus(step.name),
-    summary: workflowStage?.summary ?? '',
+    status: routeBasedStatus(step.name),
+    summary: stageDetail?.hint || stageDetail?.summary || '',
     to: step.name === 'data-prep'
       ? { path: '/data-prep', query: baseQuery }
       : step.name === 'radar'
@@ -120,55 +154,58 @@ const steps = computed(() => baseSteps.map((step, index) => {
           : step.name === 'ranking'
             ? { path: '/ranking', query: baseQuery }
             : step.name === 'opportunity'
-            ? props.bestCardId
-              ? { path: `/opportunity/${props.bestCardId}`, query: baseQuery }
+            ? bestCardId.value
+              ? { path: `/opportunity/${bestCardId.value}`, query: baseQuery }
               : { path: '/insight', query: baseQuery }
-            : props.bestCardId
-              ? { path: `/report/${props.bestCardId}`, query: baseQuery }
+            : bestCardId.value
+              ? { path: `/report/${bestCardId.value}`, query: baseQuery }
               : { path: '/ranking', query: baseQuery }
   }
 }))
 
+const isFinalStep = computed(() => props.current === 'report')
 const currentLabel = computed(() => steps.value.find((step) => step.name === props.current)?.title ?? '')
-const currentStageSummary = computed(() =>
-  steps.value.find((step) => step.name === props.current)?.summary ?? '当前阶段摘要待生成。'
-)
-const currentIndex = computed(() => baseSteps.findIndex((step) => step.name === props.current))
-const nextStageName = computed(() => {
-  if (currentIndex.value < 0 || currentIndex.value >= baseSteps.length - 1) return ''
-  return baseSteps[currentIndex.value + 1]?.name ?? ''
+const currentStageSummary = computed(() => {
+  const summary = steps.value.find((step) => step.name === props.current)?.summary
+  if (summary) return summary
+  return resolveProductPathStage(props.current, props.workflow?.stages)?.summary ?? '当前阶段摘要待生成。'
 })
+const nextStageName = computed(() => pathProgress.value.nextStageKey)
 const nextStageLabel = computed(() =>
-  steps.value.find((step) => step.name === nextStageName.value)?.title ?? ''
+  resolveProductPathStage(nextStageName.value, props.workflow?.stages)?.title ?? ''
 )
-const completedStepCount = computed(() => steps.value.filter((step) => step.status === 'done').length)
+const completedStepCount = computed(() => pathProgress.value.completedBeforeCurrent)
+const activeStepCount = computed(() => pathProgress.value.activeStepCount)
 const activeStepStatusLabel = computed(() => {
-  const stage = steps.value.find((step) => step.name === props.current)
-  if (stage?.status === 'done') return '已完成'
-  if (stage?.status === 'current') return '进行中'
-  return '待推进'
+  if (props.current === 'report') return '终态输出'
+  if (currentRouteIndex.value < 0) return '待推进'
+  return '进行中'
 })
 const progressText = computed(() => {
-  if (!props.workflow) {
-    return '等待建立主流程'
+  const total = PRODUCT_PATH_TOTAL
+  const workflowHint = props.workflow
+    ? `已形成 ${props.workflow.signalCount} 条信号、${props.workflow.opportunityCount} 个机会点。`
+    : ''
+  if (pathProgress.value.isFinalStage) {
+    return `${workflowHint}当前处于第 ${total}/${total} 步「${currentLabel.value}」，前序 ${completedStepCount.value} 步已完成。`.trim()
   }
-  return `当前位于${currentLabel.value}，已形成 ${props.workflow.signalCount} 条信号与 ${props.workflow.opportunityCount} 个机会点。`
+  return `${workflowHint}当前推进至第 ${activeStepCount.value}/${total} 步「${currentLabel.value}」，前序 ${completedStepCount.value} 步已完成。`.trim()
+})
+const judgmentHint = computed(() => {
+  if (isFinalStep.value) {
+    return props.workflow?.reportReady
+      ? '洞察与机会数据已齐备，可导出正式报告。'
+      : '报告页：支持 Markdown / PDF / Excel 导出。'
+  }
+  if (props.workflow?.reportReady && props.current === 'opportunity') {
+    return '机会数据已齐备，可进入报告页导出正式结论。'
+  }
+  return currentStageSummary.value
 })
 const nextStageSummary = computed(() =>
-  props.workflow?.stages.find((item) => item.key === nextStageName.value)?.summary ?? ''
+  resolveProductPathStage(nextStageName.value, props.workflow?.stages)?.summary ?? ''
 )
 
-function stepIndex(name: string) {
-  return baseSteps.findIndex((step) => step.name === name)
-}
-
-function fallbackStatus(name: string) {
-  const targetIndex = stepIndex(name)
-  const currentIndex = stepIndex(props.current)
-  if (targetIndex < currentIndex) return 'done'
-  if (targetIndex === currentIndex) return 'current'
-  return 'pending'
-}
 </script>
 
 <style scoped>
@@ -291,6 +328,22 @@ function fallbackStatus(name: string) {
   line-height: 1.5;
 }
 
+.best-opportunity-link {
+  display: block;
+  margin-top: 8px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.best-opportunity-link:hover b {
+  color: var(--accent);
+}
+
+.next-stage--done {
+  border-color: rgba(22, 163, 74, 0.18);
+  background: rgba(240, 253, 244, 0.82);
+}
+
 .flow-ribbon small {
   margin-top: 10px;
   line-height: 1.6;
@@ -299,7 +352,7 @@ function fallbackStatus(name: string) {
 .flow-steps {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 8px;
   margin: 0;
   padding: 0;
@@ -399,6 +452,12 @@ function fallbackStatus(name: string) {
 
   .flow-head-side {
     min-width: 0;
+  }
+
+  .flow-steps {
+    grid-template-columns: repeat(6, minmax(108px, 1fr));
+    overflow-x: auto;
+    padding-bottom: 4px;
   }
 }
 

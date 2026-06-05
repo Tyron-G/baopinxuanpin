@@ -9,13 +9,13 @@
       <div class="workflow-side">
         <div class="workflow-progress">
           <span>流程节奏</span>
-          <b>{{ completedStageCount }}/{{ workflow.stages.length }}</b>
+          <b>{{ activeStepCount }}/{{ totalSteps }}</b>
           <small>{{ progressText }}</small>
         </div>
-        <div class="workflow-next">
-          <span>下一步</span>
-          <b>{{ nextStageDetail?.title ?? currentStageDetail.title }}</b>
-          <small>{{ currentStageDetail.nextAction }}</small>
+        <div class="workflow-next" :class="{ 'workflow-next--done': isFinalStage }">
+          <span>{{ isFinalStage ? '流程状态' : '下一步' }}</span>
+          <b>{{ isFinalStage ? '已到终态' : (nextStageDetail?.title ?? currentStageDetail.title) }}</b>
+          <small>{{ isFinalStage ? finalStageHint : currentStageDetail.nextAction }}</small>
         </div>
       </div>
     </div>
@@ -27,9 +27,9 @@
         <small>{{ currentStageDetail.nextAction }}</small>
       </article>
       <article>
-        <span>下一步焦点</span>
-        <b>{{ nextStageDetail?.title ?? currentStageDetail.title }}</b>
-        <small>{{ nextStageDetail?.summary ?? currentStageDetail.summary }}</small>
+        <span>{{ isFinalStage ? '终态说明' : '下一步焦点' }}</span>
+        <b>{{ isFinalStage ? '报告可交付' : (nextStageDetail?.title ?? currentStageDetail.title) }}</b>
+        <small>{{ isFinalStage ? finalStageHint : (nextStageDetail?.summary ?? currentStageDetail.summary) }}</small>
       </article>
       <article>
         <span>进度比例</span>
@@ -64,6 +64,11 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { WorkflowProgress } from '@/types'
+import {
+  PRODUCT_PATH_TOTAL,
+  computeProductPathProgress,
+  resolveProductPathStage
+} from '@/constants/productPath'
 
 const props = defineProps<{
   workflow?: WorkflowProgress
@@ -71,46 +76,42 @@ const props = defineProps<{
 }>()
 
 const workflow = computed(() => props.workflow)
-const fallbackStages = [
-  { key: 'data-prep', title: '数据准备', status: 'pending', summary: '品牌约束、平台、预算和供应链边界已录入。', nextAction: '生成品牌上下文' },
-  { key: 'radar', title: '信号雷达', status: 'pending', summary: '系统聚焦今日最值得跟进的搜索、社媒和差评信号。', nextAction: '确认高优先级信号' },
-  { key: 'insight', title: '洞察发现', status: 'pending', summary: '系统从趋势、竞争和供需三个维度筛出可进入赛道。', nextAction: '选择优先深挖的赛道' },
-  { key: 'opportunity', title: '爆品机会', status: 'pending', summary: '系统输出机会点、风险、利润和供应链可行性结论。', nextAction: '确认立项、观望或放弃' },
-  { key: 'report', title: '选品报告', status: 'pending', summary: '系统已具备沉淀报告所需信息，可对外输出本轮结论。', nextAction: '导出报告并沉淀判断' }
-]
 
-const currentStageDetail = computed(() =>
-  props.workflow?.stages.find((item) => item.key === props.currentStage)
-  ?? fallbackStages.find((item) => item.key === props.currentStage)
-)
+function resolveStageDetail(stageKey: string) {
+  return resolveProductPathStage(stageKey, props.workflow?.stages)
+}
 
-const currentStageIndex = computed(() => fallbackStages.findIndex((item) => item.key === props.currentStage))
-const nextStageKey = computed(() => {
-  if (currentStageIndex.value < 0 || currentStageIndex.value >= fallbackStages.length - 1) {
-    return props.currentStage
-  }
-  return fallbackStages[currentStageIndex.value + 1]?.key ?? props.currentStage
-})
+const currentStageDetail = computed(() => resolveStageDetail(props.currentStage))
+
+const pathProgress = computed(() => computeProductPathProgress(props.currentStage))
+const totalSteps = computed(() => PRODUCT_PATH_TOTAL)
+const activeStepCount = computed(() => pathProgress.value.activeStepCount)
+const completedBeforeCurrent = computed(() => pathProgress.value.completedBeforeCurrent)
+const isFinalStage = computed(() => pathProgress.value.isFinalStage)
+const nextStageKey = computed(() => pathProgress.value.nextStageKey)
 const nextStageDetail = computed(() => {
-  return props.workflow?.stages.find((item) => item.key === nextStageKey.value)
-    ?? fallbackStages.find((item) => item.key === nextStageKey.value)
+  if (!nextStageKey.value) return undefined
+  return resolveStageDetail(nextStageKey.value)
 })
-const completedStageCount = computed(() => props.workflow?.stages.filter((item) => item.status === 'done').length ?? 0)
-const progressPercent = computed(() => {
-  const total = props.workflow?.stages.length ?? 5
-  const currentProgress = currentStageIndex.value >= 0 ? currentStageIndex.value + 1 : 1
-  return Math.max(Math.round((completedStageCount.value / total) * 100), Math.round((currentProgress / total) * 100))
-})
+const progressPercent = computed(() => pathProgress.value.progressPercent)
 const currentStageStatusLabel = computed(() => {
-  const status = currentStageDetail.value?.status
-  if (status === 'done') return '已完成'
-  if (status === 'current') return '进行中'
-  if (props.currentStage === 'report') return '可交付'
-  return '待推进'
+  if (props.currentStage === 'report') return props.workflow?.reportReady ? '可交付' : '终态输出'
+  if (pathProgress.value.index < 0) return '待推进'
+  return '进行中'
 })
+const finalStageHint = computed(() =>
+  props.workflow?.reportReady
+    ? '本轮选品判断已推进至报告输出，可导出或返回机会页复核。'
+    : '报告页已就绪，完成复核后可导出正式结论。'
+)
 const progressText = computed(() => {
-  if (!props.workflow) return '等待启动本轮流程'
-  return `当前已识别 ${props.workflow.signalCount} 条信号、${props.workflow.insightCount} 个赛道、${props.workflow.opportunityCount} 个机会点。`
+  const metricsHint = props.workflow
+    ? `当前已识别 ${props.workflow.signalCount} 条信号、${props.workflow.insightCount} 个赛道、${props.workflow.opportunityCount} 个机会点。`
+    : '等待启动本轮流程'
+  if (isFinalStage.value) {
+    return `${metricsHint} 当前处于第 ${totalSteps.value}/${totalSteps.value} 步，前序 ${completedBeforeCurrent.value} 步已完成。`.trim()
+  }
+  return `${metricsHint} 当前推进至第 ${activeStepCount.value}/${totalSteps.value} 步，前序 ${completedBeforeCurrent.value} 步已完成。`.trim()
 })
 </script>
 
@@ -200,6 +201,11 @@ const progressText = computed(() => {
   margin-top: 8px;
   color: var(--muted);
   line-height: 1.6;
+}
+
+.workflow-next--done {
+  border-color: rgba(22, 163, 74, 0.18);
+  background: rgba(240, 253, 244, 0.82);
 }
 
 .workflow-ribbon {
