@@ -3,8 +3,15 @@
     <PageHero eyebrow="机会榜单" title="TOP50 潜力品机会榜" description="按机会分数排序，每个品标注推荐原因与卖点建议（MVP P0）。" />
     <section v-if="loading" class="panel pad"><el-skeleton :rows="8" animated /></section>
     <section v-else class="panel pad">
+      <div class="rank-toolbar">
+        <div>
+          <span class="eyebrow">平台视角</span>
+          <p class="toolbar-hint">榜单机会分与 12 月同比按所选平台口径计算，与洞察页一致。</p>
+        </div>
+        <el-segmented v-model="activePlatform" :options="platformOptions" />
+      </div>
       <div class="rank-head">
-        <span>共 {{ page?.total ?? 0 }} 项 · 当前展示 {{ items.length }} 项</span>
+        <span>共 {{ page?.total ?? 0 }} 项 · 当前展示 {{ items.length }} 项 · {{ activePlatformLabel }}</span>
         <el-button type="primary" @click="load">刷新榜单</el-button>
       </div>
       <el-table :data="items" stripe>
@@ -40,11 +47,12 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { api } from '@/api'
 import { getBrandId } from '@/composables/useBrandContext'
-import type { OpportunityRankItem, OpportunityRankingPage } from '@/types'
+import { DEFAULT_PLATFORM_VIEW } from '@/constants/brand'
+import type { CategoryTrend, OpportunityRankItem, OpportunityRankingPage } from '@/types'
 import PageHero from '@/components/common/PageHero.vue'
 import { getApiErrorMessage } from '@/lib/apiError'
 import { ElMessage } from 'element-plus'
@@ -54,11 +62,23 @@ const router = useRouter()
 const loading = ref(true)
 const page = ref<OpportunityRankingPage>()
 const items = ref<OpportunityRankItem[]>([])
+const trends = ref<CategoryTrend[]>([])
+const activePlatform = ref(DEFAULT_PLATFORM_VIEW)
+const platformReady = ref(false)
+
+const platformOptions = computed(() => [...new Set(trends.value.map((item) => item.platform))])
+const activePlatformLabel = computed(() =>
+  activePlatform.value === DEFAULT_PLATFORM_VIEW ? '全平台聚合视角' : `${activePlatform.value} 平台视角`
+)
+
+async function loadTrends() {
+  trends.value = await api.getTrends(getBrandId())
+}
 
 async function load() {
   loading.value = true
   try {
-    page.value = await api.getTop50Ranking(getBrandId())
+    page.value = await api.getTop50Ranking(getBrandId(), 1, 50, activePlatform.value)
     items.value = page.value.items
   } catch (error) {
     ElMessage.error(getApiErrorMessage(error))
@@ -68,17 +88,59 @@ async function load() {
 }
 
 function openCard(cardId: number) {
-  const platform = typeof route.query.platform === 'string' ? route.query.platform : undefined
   router.push({
     path: `/opportunity/${cardId}`,
-    query: { brandId: getBrandId(), ...(platform ? { platform } : {}) }
+    query: { brandId: getBrandId(), platform: activePlatform.value }
   })
 }
 
-onMounted(load)
+watch(platformOptions, (options) => {
+  if (options.length && !options.includes(activePlatform.value)) {
+    activePlatform.value = DEFAULT_PLATFORM_VIEW
+  }
+})
+
+watch(
+  () => route.query.platform,
+  (value) => {
+    if (typeof value === 'string' && value.trim()) {
+      activePlatform.value = value
+      return
+    }
+    activePlatform.value = DEFAULT_PLATFORM_VIEW
+  },
+  { immediate: true }
+)
+
+watch(activePlatform, async (platform) => {
+  if (!platformReady.value) return
+  router.replace({ query: { ...route.query, brandId: getBrandId(), platform } })
+  await load()
+})
+
+onMounted(async () => {
+  await loadTrends()
+  platformReady.value = true
+  await load()
+})
 </script>
 
 <style scoped>
+.rank-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.toolbar-hint {
+  margin: 4px 0 0;
+  color: var(--text-muted, #64748b);
+  font-size: 13px;
+}
+
 .rank-head {
   display: flex;
   justify-content: space-between;

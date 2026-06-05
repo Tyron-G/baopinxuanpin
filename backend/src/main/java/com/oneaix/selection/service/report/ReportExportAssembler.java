@@ -1,6 +1,7 @@
 package com.oneaix.selection.service.report;
 
 import com.oneaix.selection.dto.BrandSelectionContext;
+import com.oneaix.selection.dto.InsightCardView;
 import com.oneaix.selection.dto.OpportunityDetail;
 import com.oneaix.selection.dto.OpportunityLensFocus;
 import com.oneaix.selection.dto.OpportunityNarrative;
@@ -12,6 +13,8 @@ import com.oneaix.selection.dto.SignalItem;
 import com.oneaix.selection.dto.report.ReportMarkdownInput;
 import com.oneaix.selection.entity.BrandInfo;
 import com.oneaix.selection.enums.PlatformView;
+import com.oneaix.selection.service.SignalRadarService;
+import com.oneaix.selection.service.catalog.InsightCardQueryService;
 import com.oneaix.selection.util.TextFormats;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -30,15 +33,21 @@ public class ReportExportAssembler {
 
     private final ReportContentAssembler contentAssembler;
     private final ReportMarkdownRenderer markdownRenderer;
+    private final InsightCardQueryService cardQueryService;
+    private final SignalRadarService signalRadarService;
     private final Clock clock;
 
     public ReportExportAssembler(
             ReportContentAssembler contentAssembler,
             ReportMarkdownRenderer markdownRenderer,
+            InsightCardQueryService cardQueryService,
+            SignalRadarService signalRadarService,
             @Autowired(required = false) Clock clock
     ) {
         this.contentAssembler = contentAssembler;
         this.markdownRenderer = markdownRenderer;
+        this.cardQueryService = cardQueryService;
+        this.signalRadarService = signalRadarService;
         this.clock = clock != null ? clock : Clock.systemDefaultZone();
     }
 
@@ -46,8 +55,14 @@ public class ReportExportAssembler {
         PlatformView platform = PlatformView.normalize(platformView);
         BrandInfo brand = context.brand();
 
-        List<SignalItem> signals = context.signals().stream().limit(TOP_SIGNAL_LIMIT).toList();
-        var rankedCards = contentAssembler.sortCardsForPlatform(context.cards(), platform);
+        List<InsightCardView> rankedCards = cardQueryService.rankedViews(
+                context.brand(),
+                context.catalog(),
+                platform.getLabel()
+        );
+        List<SignalItem> signals = signalRadarService.buildSignals(context.brand(), rankedCards).stream()
+                .limit(TOP_SIGNAL_LIMIT)
+                .toList();
         List<OpportunityLensFocus> opportunityLensFocuses = contentAssembler.buildOpportunityLensFocuses(detail.points());
         OpportunityNarrative opportunityNarrative = contentAssembler.buildOpportunityNarrative(
                 detail.competitorSummary(),

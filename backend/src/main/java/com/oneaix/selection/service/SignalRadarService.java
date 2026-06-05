@@ -9,6 +9,7 @@ import com.oneaix.selection.entity.BrandInfo;
 import com.oneaix.selection.enums.PlatformView;
 import com.oneaix.selection.enums.SignalStrength;
 import com.oneaix.selection.enums.SignalType;
+import com.oneaix.selection.service.catalog.InsightCardQueryService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -22,19 +23,32 @@ import java.util.Map;
 @Service
 public class SignalRadarService {
     private final BrandSelectionContextLoader contextLoader;
+    private final InsightCardQueryService cardQueryService;
     private final SignalTemplateCatalog signalTemplateCatalog;
 
     public SignalRadarService(
             @Lazy BrandSelectionContextLoader contextLoader,
+            InsightCardQueryService cardQueryService,
             SignalTemplateCatalog signalTemplateCatalog
     ) {
         this.contextLoader = contextLoader;
+        this.cardQueryService = cardQueryService;
         this.signalTemplateCatalog = signalTemplateCatalog;
     }
 
     public List<SignalItem> signals(Long brandId) {
+        return signals(brandId, PlatformView.ALL.getLabel());
+    }
+
+    /** 按平台口径 enrich 卡片增速后再生成信号 2026-06-05 */
+    public List<SignalItem> signals(Long brandId, String platform) {
         BrandSelectionContext context = contextLoader.load(brandId);
-        return context.signals();
+        List<InsightCardView> cards = cardQueryService.rankedViews(
+                context.brand(),
+                context.catalog(),
+                platform
+        );
+        return buildSignals(context.brand(), cards);
     }
 
     /** 由上下文加载器调用，避免 load → signals → load 递归 2026-06-04 */

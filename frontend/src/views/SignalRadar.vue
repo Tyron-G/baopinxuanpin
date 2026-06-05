@@ -23,6 +23,11 @@
           <small>{{ leadSignal ? `${leadSignal.platform} · ${leadSignal.signalType} · 最近更新 ${leadSignal.discoveredAt}` : '当前还没有可用信号' }}</small>
         </div>
         <div class="radar-context">
+          <article class="context-card platform-card">
+            <span>平台视角</span>
+            <el-segmented v-model="selectedPlatform" :options="platformFilterOptions" size="small" />
+            <small>{{ platformFilterLabel }}</small>
+          </article>
           <article class="context-card">
             <span>当前主判断</span>
             <b>{{ leadSignal?.decision ?? '等待信号' }}</b>
@@ -221,9 +226,10 @@ import { useRoute, useRouter } from 'vue-router'
 import { TrendCharts } from '@element-plus/icons-vue'
 import { api } from '@/api'
 import { getBrandId, setBrandId } from '@/composables/useBrandContext'
+import { DEFAULT_PLATFORM_VIEW } from '@/constants/brand'
 import { getApiErrorMessage } from '@/lib/apiError'
 import { ElMessage } from 'element-plus'
-import type { CompetitorShop, PushDeliveryRecord, SignalItem, WorkflowProgress } from '@/types'
+import type { CategoryTrend, CompetitorShop, PushDeliveryRecord, SignalItem, WorkflowProgress } from '@/types'
 import PageHero from '@/components/common/PageHero.vue'
 import WorkflowSummary from '@/components/common/WorkflowSummary.vue'
 
@@ -238,6 +244,14 @@ const competitors = ref<CompetitorShop[]>([])
 const pushing = ref(false)
 const pushForm = ref({ channelType: '钉钉', webhookUrl: '', enabled: true })
 const deliveries = ref<PushDeliveryRecord[]>([])
+const trends = ref<CategoryTrend[]>([])
+const selectedPlatform = ref(DEFAULT_PLATFORM_VIEW)
+const platformReady = ref(false)
+
+const platformFilterOptions = computed(() => [...new Set(trends.value.map((item) => item.platform))])
+const platformFilterLabel = computed(() =>
+  selectedPlatform.value === DEFAULT_PLATFORM_VIEW ? '卡片增速按全平台聚合' : `卡片增速按 ${selectedPlatform.value} 口径`
+)
 
 const demoWebhookByChannel: Record<string, string> = {
   钉钉: 'https://oapi.dingtalk.com/robot/send?access_token=demo-dingtalk-token',
@@ -264,11 +278,15 @@ const trackableCount = computed(() => signals.value.filter((item) => Boolean(ite
 const leadReasonTitle = computed(() => leadSignal.value?.reasons[0]?.title ?? '等待更多证据')
 const leadRiskTitle = computed(() => leadSignal.value?.risks[0]?.title ?? '当前暂无显性风险')
 
+async function loadSignals() {
+  signals.value = await api.getSignals(brandId.value, selectedPlatform.value)
+}
+
 async function load() {
   loading.value = true
   try {
     const [signalRows, dashboard, workflowData, competitorRows] = await Promise.all([
-      api.getSignals(brandId.value),
+      api.getSignals(brandId.value, selectedPlatform.value),
       api.getDashboard(brandId.value),
       api.getWorkflow(brandId.value),
       api.getCompetitors(brandId.value)
@@ -321,24 +339,22 @@ function strengthType(strength: string) {
 }
 
 function openOpportunity(cardId: number) {
-  const signal = signals.value.find((item) => item.cardId === cardId)
   router.push({
     path: `/opportunity/${cardId}`,
     query: {
       brandId: brandId.value,
-      ...(signal?.platform ? { platform: signal.platform } : {})
+      platform: selectedPlatform.value
     }
   })
 }
 
 function openInsight(category: string) {
-  const signal = signals.value.find((item) => item.categoryName === category)
   router.push({
     path: '/insight',
     query: {
       brandId: brandId.value,
       category,
-      ...(signal?.platform ? { platform: signal.platform } : {})
+      platform: selectedPlatform.value
     }
   })
 }
@@ -396,8 +412,38 @@ function isTracked(item: SignalItem) {
   })
 }
 
-onMounted(load)
+onMounted(async () => {
+  trends.value = await api.getTrends(brandId.value)
+  platformReady.value = true
+  await load()
+})
 watch(brandId, load)
+watch(platformFilterOptions, (options) => {
+  if (options.length && !options.includes(selectedPlatform.value)) {
+    selectedPlatform.value = DEFAULT_PLATFORM_VIEW
+  }
+})
+watch(
+  () => route.query.platform,
+  (value) => {
+    if (typeof value === 'string' && value.trim()) {
+      selectedPlatform.value = value
+      return
+    }
+    selectedPlatform.value = DEFAULT_PLATFORM_VIEW
+  },
+  { immediate: true }
+)
+watch(selectedPlatform, async (platform) => {
+  if (!platformReady.value) return
+  router.replace({ query: { ...route.query, brandId: brandId.value, platform } })
+  loading.value = true
+  try {
+    await loadSignals()
+  } finally {
+    loading.value = false
+  }
+})
 </script>
 
 <style scoped>

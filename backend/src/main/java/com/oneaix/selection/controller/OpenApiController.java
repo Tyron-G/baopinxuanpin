@@ -13,6 +13,7 @@ import com.oneaix.selection.service.InsightService;
 import com.oneaix.selection.service.OpportunityService;
 import com.oneaix.selection.service.ReportService;
 import com.oneaix.selection.service.SignalRadarService;
+import com.oneaix.selection.service.catalog.InsightCardQueryService;
 import com.oneaix.selection.service.ranking.OpportunityRankingService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Min;
@@ -34,6 +35,7 @@ public class OpenApiController {
 
     private final SignalRadarService signalRadarService;
     private final BrandSelectionContextLoader contextLoader;
+    private final InsightCardQueryService cardQueryService;
     private final OpportunityRankingService rankingService;
     private final InsightService insightService;
     private final OpportunityService opportunityService;
@@ -42,6 +44,7 @@ public class OpenApiController {
     public OpenApiController(
             SignalRadarService signalRadarService,
             BrandSelectionContextLoader contextLoader,
+            InsightCardQueryService cardQueryService,
             OpportunityRankingService rankingService,
             InsightService insightService,
             OpportunityService opportunityService,
@@ -49,6 +52,7 @@ public class OpenApiController {
     ) {
         this.signalRadarService = signalRadarService;
         this.contextLoader = contextLoader;
+        this.cardQueryService = cardQueryService;
         this.rankingService = rankingService;
         this.insightService = insightService;
         this.opportunityService = opportunityService;
@@ -57,16 +61,20 @@ public class OpenApiController {
 
     @GetMapping("/radar/signals")
     public List<SignalItem> signals(
-            @RequestParam(defaultValue = ApiConstants.DEFAULT_BRAND_ID_PARAM) @Min(1) Long brandId
+            @RequestParam(defaultValue = ApiConstants.DEFAULT_BRAND_ID_PARAM) @Min(1) Long brandId,
+            @RequestParam(required = false) String platform
     ) {
-        return signalRadarService.signals(brandId);
+        return signalRadarService.signals(brandId, platform);
     }
 
     @GetMapping("/ranking/top50")
     public OpportunityRankingPage ranking(
-            @RequestParam(defaultValue = ApiConstants.DEFAULT_BRAND_ID_PARAM) @Min(1) Long brandId
+            @RequestParam(defaultValue = ApiConstants.DEFAULT_BRAND_ID_PARAM) @Min(1) Long brandId,
+            @RequestParam(required = false) String platform
     ) {
-        return rankingService.top50(contextLoader.load(brandId), 1, 50);
+        var context = contextLoader.load(brandId);
+        var cards = cardQueryService.rankedViews(context.brand(), context.catalog(), platform);
+        return rankingService.top50(cards, 1, 50);
     }
 
     @GetMapping("/insight/cards")

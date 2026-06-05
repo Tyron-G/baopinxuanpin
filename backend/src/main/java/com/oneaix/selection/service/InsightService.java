@@ -58,11 +58,12 @@ public class InsightService {
     public InsightSummary summary(Long brandId, String platform) {
         BrandSelectionContext context = contextLoader.load(brandId);
         Set<String> visible = context.visibleCategoryNames();
+        List<InsightCardView> rankedCards = cardQueryService.rankedViews(context.brand(), context.catalog(), platform);
         return summaryAssembler.build(new InsightSummaryBuildRequest(
                 context.brand(),
                 context.catalog(),
                 visible,
-                context.cards(),
+                rankedCards,
                 marketDataService.trends(visible),
                 marketDataService.competition(visible),
                 marketDataService.supplyDemand(visible),

@@ -70,8 +70,12 @@ export const api = {
       })
       .then((res) => res.data)
   },
-  getSignals(brandId?: number) {
-    return http.get<SignalItem[]>('/radar/signals', { params: { brandId: resolveBrandId(brandId) } }).then((res) => res.data)
+  getSignals(brandId?: number, platform?: string) {
+    return http
+      .get<SignalItem[]>('/radar/signals', {
+        params: { brandId: resolveBrandId(brandId), platform: platform || undefined }
+      })
+      .then((res) => res.data)
   },
   getCompetitors(brandId?: number) {
     return http.get<CompetitorShop[]>('/competitor', { params: { brandId: resolveBrandId(brandId) } }).then((res) => res.data)
@@ -116,10 +120,10 @@ export const api = {
       })
       .then((res) => res.data)
   },
-  getTop50Ranking(brandId?: number, page = 1, pageSize = 50) {
+  getTop50Ranking(brandId?: number, page = 1, pageSize = 50, platform?: string) {
     return http
       .get<OpportunityRankingPage>('/ranking/top50', {
-        params: { brandId: resolveBrandId(brandId), page, pageSize }
+        params: { brandId: resolveBrandId(brandId), page, pageSize, platform: platform || undefined }
       })
       .then((res) => res.data)
   },

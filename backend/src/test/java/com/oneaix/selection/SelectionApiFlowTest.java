@@ -10,6 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
@@ -74,6 +75,32 @@ class SelectionApiFlowTest {
         mockMvc.perform(get("/api/radar/signals").param("brandId", String.valueOf(brandId)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[0].score").exists());
+
+        MvcResult radarAll = mockMvc.perform(get("/api/radar/signals")
+                        .param("brandId", String.valueOf(brandId))
+                        .param("platform", "全平台"))
+                .andExpect(status().isOk())
+                .andReturn();
+        MvcResult radarTmall = mockMvc.perform(get("/api/radar/signals")
+                        .param("brandId", String.valueOf(brandId))
+                        .param("platform", "天猫"))
+                .andExpect(status().isOk())
+                .andReturn();
+        assertEquals("+74.4%", signalMetricById(radarAll, "sig-card-1"));
+        assertEquals("+60.1%", signalMetricById(radarTmall, "sig-card-1"));
+
+        MvcResult rankingAll = mockMvc.perform(get("/api/ranking/top50")
+                        .param("brandId", String.valueOf(brandId))
+                        .param("platform", "全平台"))
+                .andExpect(status().isOk())
+                .andReturn();
+        MvcResult rankingTmall = mockMvc.perform(get("/api/ranking/top50")
+                        .param("brandId", String.valueOf(brandId))
+                        .param("platform", "天猫"))
+                .andExpect(status().isOk())
+                .andReturn();
+        assertEquals(65, rankingScoreByCardId(rankingAll, 2));
+        assertEquals(54, rankingScoreByCardId(rankingTmall, 2));
 
         mockMvc.perform(get("/api/opportunity/1").param("brandId", String.valueOf(brandId)))
                 .andExpect(status().isOk())
@@ -371,5 +398,24 @@ class SelectionApiFlowTest {
 
     private JsonNode dataNode(MvcResult result) throws Exception {
         return objectMapper.readTree(result.getResponse().getContentAsString()).get("data");
+    }
+
+    private String signalMetricById(MvcResult result, String signalId) throws Exception {
+        JsonNode data = dataNode(result);
+        for (JsonNode item : data) {
+            if (signalId.equals(item.path("id").asText())) {
+                return item.path("metric").asText();
+            }
+        }
+        return null;
+    }
+
+    private int rankingScoreByCardId(MvcResult result, long cardId) throws Exception {
+        for (JsonNode item : dataNode(result).path("items")) {
+            if (item.path("cardId").asLong() == cardId) {
+                return item.path("opportunityScore").asInt();
+            }
+        }
+        return -1;
     }
 }

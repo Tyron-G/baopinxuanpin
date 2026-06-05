@@ -2,7 +2,6 @@ package com.oneaix.selection.service.ranking;
 
 import com.oneaix.selection.content.CategoryUniverseCatalog;
 import com.oneaix.selection.content.RankingPadCatalog;
-import com.oneaix.selection.dto.BrandSelectionContext;
 import com.oneaix.selection.dto.InsightCardView;
 import com.oneaix.selection.dto.OpportunityRankItem;
 import com.oneaix.selection.dto.OpportunityRankingPage;
@@ -30,8 +29,8 @@ public class OpportunityRankingService {
         this.opportunityIntelBuilder = opportunityIntelBuilder;
     }
 
-    public OpportunityRankingPage top50(BrandSelectionContext context, int page, int pageSize) {
-        List<OpportunityRankItem> items = padToFifty(buildItems(context));
+    public OpportunityRankingPage top50(List<InsightCardView> cards, int page, int pageSize) {
+        List<OpportunityRankItem> items = padToFifty(buildItems(cards));
         assignRanks(items);
         int total = items.size();
         int from = Math.max(0, (page - 1) * pageSize);
@@ -42,11 +41,11 @@ public class OpportunityRankingService {
         return new OpportunityRankingPage(total, page, pageSize, items.subList(from, to));
     }
 
-    private List<OpportunityRankItem> buildItems(BrandSelectionContext context) {
+    private List<OpportunityRankItem> buildItems(List<InsightCardView> cards) {
         List<OpportunityRankItem> items = new ArrayList<>();
         Set<String> seen = new HashSet<>();
 
-        for (InsightCardView view : context.cards()) {
+        for (InsightCardView view : cards) {
             InsightCard card = view.card();
             CategoryUniverseCatalog.CategoryProfile profile = findProfile(card.getCategoryName());
             List<String> variants = profile != null

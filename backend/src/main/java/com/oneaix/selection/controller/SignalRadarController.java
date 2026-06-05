@@ -1,8 +1,8 @@
 package com.oneaix.selection.controller;
 
 import com.oneaix.selection.constant.ApiConstants;
-import jakarta.validation.constraints.Min;
 import com.oneaix.selection.dto.SignalItem;
+import jakarta.validation.constraints.Min;
 import com.oneaix.selection.service.SignalRadarService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.validation.annotation.Validated;
@@ -25,7 +25,10 @@ public class SignalRadarController {
     }
 
     @GetMapping("/signals")
-    public List<SignalItem> signals(@RequestParam(defaultValue = ApiConstants.DEFAULT_BRAND_ID_PARAM) @Min(1) Long brandId) {
-        return signalRadarService.signals(brandId);
+    public List<SignalItem> signals(
+            @RequestParam(defaultValue = ApiConstants.DEFAULT_BRAND_ID_PARAM) @Min(1) Long brandId,
+            @RequestParam(required = false) String platform
+    ) {
+        return signalRadarService.signals(brandId, platform);
     }
 }

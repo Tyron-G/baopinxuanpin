@@ -24,7 +24,18 @@ class ReportExportAssemblerTest {
         Clock clock = Clock.fixed(Instant.parse("2026-06-04T10:15:00Z"), ZoneId.of("Asia/Shanghai"));
         ReportContentAssembler contentAssembler = mock(ReportContentAssembler.class);
         ReportMarkdownRenderer markdownRenderer = mock(ReportMarkdownRenderer.class);
-        when(contentAssembler.sortCardsForPlatform(org.mockito.ArgumentMatchers.anyList(), org.mockito.ArgumentMatchers.any()))
+        when(contentAssembler.sanitizeFileName(org.mockito.ArgumentMatchers.anyString()))
+                .thenAnswer(invocation -> invocation.getArgument(0, String.class));
+        when(markdownRenderer.render(org.mockito.ArgumentMatchers.any()))
+                .thenReturn("# report");
+
+        com.oneaix.selection.service.catalog.InsightCardQueryService cardQueryService =
+                mock(com.oneaix.selection.service.catalog.InsightCardQueryService.class);
+        com.oneaix.selection.service.SignalRadarService signalRadarService =
+                mock(com.oneaix.selection.service.SignalRadarService.class);
+        when(cardQueryService.rankedViews(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.anyList(), org.mockito.ArgumentMatchers.anyString()))
+                .thenReturn(List.of());
+        when(signalRadarService.buildSignals(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.anyList()))
                 .thenReturn(List.of());
         when(contentAssembler.buildOpportunityLensFocuses(org.mockito.ArgumentMatchers.anyList()))
                 .thenReturn(List.of());
@@ -40,10 +51,6 @@ class ReportExportAssemblerTest {
                 .thenReturn(mock(com.oneaix.selection.dto.ReportActionSummary.class));
         when(contentAssembler.buildRiskSummary(org.mockito.ArgumentMatchers.anyList()))
                 .thenReturn(mock(com.oneaix.selection.dto.ReportRiskSummary.class));
-        when(contentAssembler.sanitizeFileName(org.mockito.ArgumentMatchers.anyString()))
-                .thenAnswer(invocation -> invocation.getArgument(0, String.class));
-        when(markdownRenderer.render(org.mockito.ArgumentMatchers.any()))
-                .thenReturn("# report");
 
         BrandInfo brand = new BrandInfo();
         brand.setBrandName("测试品牌");
@@ -67,7 +74,8 @@ class ReportExportAssemblerTest {
         BrandSelectionContext context = new BrandSelectionContext(
                 brand, List.of(card), java.util.Set.of("宠物智能用品"), List.of(), List.of());
 
-        ReportExportAssembler assembler = new ReportExportAssembler(contentAssembler, markdownRenderer, clock);
+        ReportExportAssembler assembler = new ReportExportAssembler(
+                contentAssembler, markdownRenderer, cardQueryService, signalRadarService, clock);
         SelectionReport report = assembler.assemble(context, detail, "全平台");
 
         assertEquals("2026-06-04 18:15", report.generatedAt());
