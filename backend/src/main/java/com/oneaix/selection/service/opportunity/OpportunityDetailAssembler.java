@@ -112,7 +112,7 @@ public class OpportunityDetailAssembler {
                 marketDataRepository.findSupplyDemandByCategories(categories);
         List<com.oneaix.selection.entity.CompetitionData> competitionRows =
                 marketDataRepository.findCompetitionByCategories(categories);
-        var lifecycleInsight = lifecycleInsightBuilder.build(categoryName, platformView, trends);
+        var lifecycleInsight = lifecycleInsightBuilder.build(categoryName, platformView, trends, relatedCompetitors);
         var supplyGapModel = supplyDemandGapModelBuilder.build(
                 card, platformView, trends, supplyRows, competitionRows);
         var priceBands = priceBandDistributionBuilder.build(categoryName, platformView, supplyRows);

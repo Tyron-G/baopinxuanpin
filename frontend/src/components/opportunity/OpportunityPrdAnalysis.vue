@@ -50,8 +50,9 @@
         <el-tag :type="lifecycle.growthAccelerating ? 'warning' : 'info'" effect="plain">
           {{ lifecycle.secondDerivativeLabel }}
         </el-tag>
-        <el-tag effect="plain">近月增速 {{ lifecycle.latestGrowthRate }}%</el-tag>
+        <el-tag effect="plain">12月同比 {{ lifecycle.latestGrowthRate }}%</el-tag>
         <el-tag effect="plain">加速度 {{ lifecycle.growthAcceleration }}</el-tag>
+        <el-tag type="danger" effect="plain">{{ lifecycle.firstHitTimeline }}</el-tag>
       </div>
     </div>
   </section>

@@ -18,13 +18,21 @@ import java.util.Map;
 @Component
 public class PotentialCategoryListBuilder {
 
+    private final TrendTwelveMonthGrowthCalculator twelveMonthGrowthCalculator;
+
+    public PotentialCategoryListBuilder(TrendTwelveMonthGrowthCalculator twelveMonthGrowthCalculator) {
+        this.twelveMonthGrowthCalculator = twelveMonthGrowthCalculator;
+    }
+
     public List<PotentialCategoryItem> build(List<InsightCardView> rankedCards, List<CategoryTrend> trends) {
         Map<String, CategoryTrend> latestTrend = latestTrendByCategory(trends);
         List<PotentialCategoryItem> items = new ArrayList<>();
         for (InsightCardView view : rankedCards) {
             String category = view.card().getCategoryName();
             CategoryTrend trend = latestTrend.get(category);
-            BigDecimal growth = trend != null ? trend.getGrowthRate() : BigDecimal.ZERO;
+            BigDecimal growth = twelveMonthGrowthCalculator.janToDecGrowth(
+                            trends, category, PlatformView.ALL.getLabel())
+                    .orElse(trend != null ? trend.getGrowthRate() : BigDecimal.ZERO);
             int socialHeat = trend != null ? trend.getSocialHeat() : 0;
             boolean syncUp = growth.doubleValue() >= 30 && socialHeat >= 5000;
             if (!syncUp && items.size() >= 5) {
@@ -33,7 +41,7 @@ public class PotentialCategoryListBuilder {
             MarketScaleBrief scale = marketScaleFor(category);
             items.add(new PotentialCategoryItem(
                     category,
-                    "搜索增速 " + growth + "%",
+                    "12月同比 " + growth + "%",
                     "社媒热度 " + socialHeat,
                     trend != null ? trend.getRisingWords() : "—",
                     syncUp,

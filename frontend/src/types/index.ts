@@ -608,6 +608,8 @@ export interface LifecycleInsight {
   secondDerivativeLabel: string
   latestGrowthRate: number
   growthAcceleration: number
+  firstHitTimeline: string
+  firstHitMonthsAgo: number
   summary: string
 }
 

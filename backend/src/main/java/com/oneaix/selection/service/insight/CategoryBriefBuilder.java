@@ -44,11 +44,18 @@ public class CategoryBriefBuilder {
 
     private final PotentialCategoryListBuilder potentialCategoryListBuilder;
 
+    private final TrendTwelveMonthGrowthCalculator twelveMonthGrowthCalculator;
 
 
-    public CategoryBriefBuilder(PotentialCategoryListBuilder potentialCategoryListBuilder) {
+
+    public CategoryBriefBuilder(
+            PotentialCategoryListBuilder potentialCategoryListBuilder,
+            TrendTwelveMonthGrowthCalculator twelveMonthGrowthCalculator
+    ) {
 
         this.potentialCategoryListBuilder = potentialCategoryListBuilder;
+
+        this.twelveMonthGrowthCalculator = twelveMonthGrowthCalculator;
 
     }
 
@@ -132,9 +139,13 @@ public class CategoryBriefBuilder {
 
     private CategoryBrief fromTrend(CategoryTrend row, List<CategoryTrend> allTrends, String platform) {
 
-        String growth12m = formatPercent(row.getGrowthRate());
-
         String platformLabel = platform == null || platform.isBlank() ? PlatformView.ALL.getLabel() : platform;
+
+        String growth12m = twelveMonthGrowthCalculator.janToDecGrowth(allTrends, row.getCategoryName(), platformLabel)
+
+                .map(this::formatPercent)
+
+                .orElse(formatPercent(row.getGrowthRate()));
 
         String platformRates = buildPlatformGrowthRates(row.getCategoryName(), allTrends, platformLabel);
 
@@ -146,7 +157,7 @@ public class CategoryBriefBuilder {
 
                 row.getCategoryName(),
 
-                "月增速 " + growth12m,
+                "12月同比 " + growth12m,
 
                 description,
 
@@ -246,41 +257,33 @@ public class CategoryBriefBuilder {
 
         if (!PlatformView.ALL.getLabel().equals(activePlatform)) {
 
-            return trends.stream()
+            return twelveMonthGrowthCalculator.janToDecGrowth(trends, categoryName, activePlatform)
 
-                    .filter(row -> categoryName.equals(row.getCategoryName()) && activePlatform.equals(row.getPlatform()))
+                    .map(rate -> activePlatform + " 12月同比 " + formatPercent(rate))
 
-                    .max(Comparator.comparing(CategoryTrend::getTrendMonth))
-
-                    .map(row -> activePlatform + " 月增速 " + formatPercent(row.getGrowthRate()))
-
-                    .orElse(activePlatform + " 暂无分平台增速样例");
+                    .orElse(activePlatform + " 暂无 12 月同比样例");
 
         }
 
-        Map<String, BigDecimal> latestGrowth = new LinkedHashMap<>();
+        Map<String, BigDecimal> janDecGrowth = new LinkedHashMap<>();
 
         for (String label : List.of("天猫", "抖音", "小红书")) {
 
-            trends.stream()
+            twelveMonthGrowthCalculator.janToDecGrowth(trends, categoryName, label)
 
-                    .filter(row -> categoryName.equals(row.getCategoryName()) && label.equals(row.getPlatform()))
-
-                    .max(Comparator.comparing(CategoryTrend::getTrendMonth))
-
-                    .ifPresent(row -> latestGrowth.put(label, row.getGrowthRate()));
+                    .ifPresent(rate -> janDecGrowth.put(label, rate));
 
         }
 
-        if (latestGrowth.isEmpty()) {
+        if (janDecGrowth.isEmpty()) {
 
-            return "全平台增速见趋势图";
+            return "全平台 12 月同比见趋势图";
 
         }
 
         StringBuilder builder = new StringBuilder();
 
-        latestGrowth.forEach((label, growth) -> {
+        janDecGrowth.forEach((label, growth) -> {
 
             if (!builder.isEmpty()) {
 

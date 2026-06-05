@@ -9,28 +9,35 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/** 2026-06-04 CategoryBriefBuilder */
+/** 2026-06-05 CategoryBriefBuilder */
 class CategoryBriefBuilderTest {
 
-    private final CategoryBriefBuilder builder = new CategoryBriefBuilder(new PotentialCategoryListBuilder());
+    private final TrendTwelveMonthGrowthCalculator growthCalculator = new TrendTwelveMonthGrowthCalculator();
+
+    private final CategoryBriefBuilder builder = new CategoryBriefBuilder(
+            new PotentialCategoryListBuilder(growthCalculator),
+            growthCalculator
+    );
 
     @Test
-    void shouldPreferAllPlatformTrendRows() {
-        CategoryTrend all = trend("宠物智能用品", PlatformView.ALL.getLabel(), "2026-05", 30);
-        CategoryTrend douyin = trend("宠物智能用品", PlatformView.DOUYIN.getLabel(), "2026-06", 99);
-        var top3 = builder.trendTop3(List.of(douyin, all), "全平台");
+    void shouldPreferAllPlatformTrendRowsAndJanDecGrowth() {
+        CategoryTrend jan = trend("宠物智能用品", PlatformView.ALL.getLabel(), "2025-01", 30, 1000);
+        CategoryTrend dec = trend("宠物智能用品", PlatformView.ALL.getLabel(), "2025-12", 99, 1300);
+        CategoryTrend douyin = trend("宠物智能用品", PlatformView.DOUYIN.getLabel(), "2025-12", 99, 5000);
+        var top3 = builder.trendTop3(List.of(douyin, dec, jan), "全平台");
         assertEquals(1, top3.size());
         assertEquals("宠物智能用品", top3.get(0).categoryName());
-        assertEquals("月增速 30.0%", top3.get(0).metric());
+        assertEquals("12月同比 30.0%", top3.get(0).metric());
+        assertEquals("30.0%", top3.get(0).growthRate12m());
     }
 
-    private CategoryTrend trend(String category, String platform, String month, int growth) {
+    private CategoryTrend trend(String category, String platform, String month, int growth, int volume) {
         CategoryTrend row = new CategoryTrend();
         row.setCategoryName(category);
         row.setPlatform(platform);
         row.setTrendMonth(month);
         row.setGrowthRate(BigDecimal.valueOf(growth));
-        row.setSearchVolume(1000);
+        row.setSearchVolume(volume);
         row.setRisingWords("占位词");
         return row;
     }

@@ -7,6 +7,8 @@ public record LifecycleInsight(
         String secondDerivativeLabel,
         double latestGrowthRate,
         double growthAcceleration,
+        String firstHitTimeline,
+        int firstHitMonthsAgo,
         String summary
 ) {
 }

@@ -149,8 +149,8 @@ INSERT INTO competitor_timeline_point (shop_name, platform, focus_category, week
 ('九阳便携厨电', '抖音', '便携式咖啡器具', 4, '第4周', 76, 66, '短视频反馈继续走强，需验证是否能稳定沉淀到成交。');
 
 INSERT INTO competitor_shop (brand_id, shop_name, platform, focus_category, latest_hit, growth_signal, added_at, card_id, source_signal_id, source_signal_type, recent_launch, hit_product_count, complaint_topics, opportunity_tags, builtin_seed) VALUES
-(1, '小佩宠物旗舰店', '天猫', '宠物智能用品', '智能喂食器 SE 月销 1.2 万+', '新品「视频喂食」搜索关联度上升', '2026-06-01 10:00', 1, 'builtin-001', '搜索飙升', '近 7 天上新 2 款宠物看护周边 SKU', 3, '卡粮|噪音|APP 连接不稳', '目标品类|预算匹配|建议立项', TRUE),
-(1, '九阳便携厨电', '抖音', '便携式咖啡器具', '手压咖啡杯直播 GMV 破 80 万', '露营场景短视频转化率高于类目均值', '2026-05-28 15:30', 2, 'builtin-002', '内容种草', '近 10 天上新 1 款冷萃场景 SKU', 2, '清洗麻烦|防漏一般|保温时长短', '内容平台相关|建议观望|场景细分', TRUE);
+(1, '小佩宠物旗舰店', '天猫', '宠物智能用品', '智能喂食器 SE 月销 1.2 万+', '首个类目爆款出现约 14 个月前', '2026-06-01 10:00', 1, 'builtin-001', '搜索飙升', '近 7 天上新 2 款宠物看护周边 SKU', 3, '卡粮|噪音|APP 连接不稳', '目标品类|预算匹配|建议立项', TRUE),
+(1, '九阳便携厨电', '抖音', '便携式咖啡器具', '手压咖啡杯直播 GMV 破 80 万', '首个类目爆款出现约 16 个月前', '2026-05-28 15:30', 2, 'builtin-002', '内容种草', '近 10 天上新 1 款冷萃场景 SKU', 2, '清洗麻烦|防漏一般|保温时长短', '内容平台相关|建议观望|场景细分', TRUE);
 
 INSERT INTO push_channel_config (brand_id, channel_type, webhook_url, enabled) VALUES
 (1, '钉钉', 'https://oapi.dingtalk.com/robot/send?access_token=demo-dingtalk-token', TRUE),
