@@ -737,7 +737,7 @@ const opportunityMetricItems = computed(() => {
   if (!detail.value) return []
   return [
     { label: '市场规模', value: detail.value.insightCard.marketSize },
-    { label: '市场增速', value: detail.value.insightCard.marketGrowth },
+    { label: '12月同比', value: detail.value.insightCard.marketGrowth },
     { label: '竞争难度', value: detail.value.insightCard.competitionLevel },
     { label: '启动资金', value: detail.value.insightCard.estimatedStartupCost }
   ]

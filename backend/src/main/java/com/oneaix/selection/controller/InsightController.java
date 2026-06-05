@@ -44,8 +44,11 @@ public class InsightController {
     }
 
     @GetMapping("/cards")
-    public List<InsightCardView> cards(@RequestParam(defaultValue = ApiConstants.DEFAULT_BRAND_ID_PARAM) @Min(1) Long brandId) {
-        return insightService.cards(brandId);
+    public List<InsightCardView> cards(
+            @RequestParam(defaultValue = ApiConstants.DEFAULT_BRAND_ID_PARAM) @Min(1) Long brandId,
+            @RequestParam(required = false) String platform
+    ) {
+        return insightService.cards(brandId, platform);
     }
 
     @GetMapping("/summary")

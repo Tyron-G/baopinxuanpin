@@ -14,6 +14,7 @@ import com.oneaix.selection.service.CompetitorService;
 import com.oneaix.selection.service.NextActionPlanner;
 import com.oneaix.selection.repository.market.MarketDataRepository;
 import com.oneaix.selection.service.catalog.InsightCardCatalogService;
+import com.oneaix.selection.service.insight.InsightCardMarketGrowthEnricher;
 import com.oneaix.selection.service.insight.InsightViewAssembler;
 import com.oneaix.selection.util.TextFormats;
 import org.springframework.stereotype.Component;
@@ -44,6 +45,7 @@ public class OpportunityDetailAssembler {
     private final PriceBandDistributionBuilder priceBandDistributionBuilder;
     private final LifecycleInsightBuilder lifecycleInsightBuilder;
     private final CategoryMarketMetricsBuilder categoryMarketMetricsBuilder;
+    private final InsightCardMarketGrowthEnricher marketGrowthEnricher;
 
     public OpportunityDetailAssembler(
             InsightCardCatalogService catalogService,
@@ -64,7 +66,8 @@ public class OpportunityDetailAssembler {
             SupplyDemandGapModelBuilder supplyDemandGapModelBuilder,
             PriceBandDistributionBuilder priceBandDistributionBuilder,
             LifecycleInsightBuilder lifecycleInsightBuilder,
-            CategoryMarketMetricsBuilder categoryMarketMetricsBuilder
+            CategoryMarketMetricsBuilder categoryMarketMetricsBuilder,
+            InsightCardMarketGrowthEnricher marketGrowthEnricher
     ) {
         this.catalogService = catalogService;
         this.viewAssembler = viewAssembler;
@@ -85,13 +88,12 @@ public class OpportunityDetailAssembler {
         this.priceBandDistributionBuilder = priceBandDistributionBuilder;
         this.lifecycleInsightBuilder = lifecycleInsightBuilder;
         this.categoryMarketMetricsBuilder = categoryMarketMetricsBuilder;
+        this.marketGrowthEnricher = marketGrowthEnricher;
     }
 
     public OpportunityDetail assemble(Long cardId, BrandSelectionContext context, String platformView) {
         InsightCard card = catalogService.requireVisible(cardId, context);
         BrandInfo brand = context.brand();
-        InsightCardView cardView = context.findCard(cardId)
-                .orElseGet(() -> viewAssembler.toView(brand, card));
         CategoryPlaybook playbook = categoryPlaybookRegistry.resolve(card);
         PlatformView platform = PlatformView.normalize(platformView);
 
@@ -108,6 +110,8 @@ public class OpportunityDetailAssembler {
         Set<String> categories = Set.of(categoryName);
         List<com.oneaix.selection.entity.CategoryTrend> trends =
                 marketDataRepository.findTrendsByCategories(categories);
+        marketGrowthEnricher.applyOne(card, trends, platformView);
+        InsightCardView cardView = viewAssembler.toView(brand, card);
         List<com.oneaix.selection.entity.SupplyDemand> supplyRows =
                 marketDataRepository.findSupplyDemandByCategories(categories);
         List<com.oneaix.selection.entity.CompetitionData> competitionRows =

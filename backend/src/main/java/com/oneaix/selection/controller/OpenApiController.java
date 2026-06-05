@@ -71,9 +71,10 @@ public class OpenApiController {
 
     @GetMapping("/insight/cards")
     public List<InsightCardView> insightCards(
-            @RequestParam(defaultValue = ApiConstants.DEFAULT_BRAND_ID_PARAM) @Min(1) Long brandId
+            @RequestParam(defaultValue = ApiConstants.DEFAULT_BRAND_ID_PARAM) @Min(1) Long brandId,
+            @RequestParam(required = false) String platform
     ) {
-        return insightService.cards(brandId);
+        return insightService.cards(brandId, platform);
     }
 
     @GetMapping("/insight/summary")

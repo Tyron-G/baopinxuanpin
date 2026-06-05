@@ -8,6 +8,7 @@ import com.oneaix.selection.dto.InsightSummaryBuildRequest;
 import com.oneaix.selection.entity.CategoryTrend;
 import com.oneaix.selection.entity.CompetitionData;
 import com.oneaix.selection.entity.SupplyDemand;
+import com.oneaix.selection.service.catalog.InsightCardQueryService;
 import com.oneaix.selection.service.insight.InsightMarketDataService;
 import com.oneaix.selection.service.insight.InsightSummaryAssembler;
 import org.springframework.stereotype.Service;
@@ -20,15 +21,18 @@ import java.util.Set;
 public class InsightService {
 
     private final BrandSelectionContextLoader contextLoader;
+    private final InsightCardQueryService cardQueryService;
     private final InsightMarketDataService marketDataService;
     private final InsightSummaryAssembler summaryAssembler;
 
     public InsightService(
             BrandSelectionContextLoader contextLoader,
+            InsightCardQueryService cardQueryService,
             InsightMarketDataService marketDataService,
             InsightSummaryAssembler summaryAssembler
     ) {
         this.contextLoader = contextLoader;
+        this.cardQueryService = cardQueryService;
         this.marketDataService = marketDataService;
         this.summaryAssembler = summaryAssembler;
     }
@@ -45,8 +49,9 @@ public class InsightService {
         return marketDataService.supplyDemand(visibleFor(brandId));
     }
 
-    public List<InsightCardView> cards(Long brandId) {
-        return contextLoader.load(brandId).cards();
+    public List<InsightCardView> cards(Long brandId, String platform) {
+        var context = contextLoader.load(brandId);
+        return cardQueryService.rankedViews(context.brand(), context.catalog(), platform);
     }
 
     @TrackedExecution(value = "insight-summary", domain = "insight")

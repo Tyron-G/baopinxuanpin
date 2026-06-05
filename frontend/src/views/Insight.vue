@@ -41,9 +41,9 @@
           <small>当前最值得优先验证的赛道</small>
         </article>
         <article>
-          <span>最高增速</span>
+          <span>12月同比</span>
           <b>{{ primaryCard?.marketGrowth ?? '-' }}</b>
-          <small>优先看趋势动能是否还在</small>
+          <small>与 TOP3 同口径（Jan vs Dec）</small>
         </article>
         <article>
           <span>价格空白</span>
@@ -489,7 +489,7 @@ async function loadInsight() {
     api.getTrends(id),
     api.getCompetition(id),
     api.getSupplyDemand(id),
-    api.getInsightCards(id),
+    api.getInsightCards(id, activePlatform.value),
     api.getInsightSummary(id, activePlatform.value),
     api.getWorkflow(id)
   ])
@@ -529,7 +529,12 @@ watch(
 )
 watch(activePlatform, async (platform) => {
   if (!brandId.value) return
-  summary.value = await api.getInsightSummary(brandId.value, platform)
+  const [summaryRow, cardRows] = await Promise.all([
+    api.getInsightSummary(brandId.value, platform),
+    api.getInsightCards(brandId.value, platform)
+  ])
+  summary.value = summaryRow
+  cards.value = cardRows
   await nextTick()
   resizeActiveChart()
 })

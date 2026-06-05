@@ -56,8 +56,12 @@ export const api = {
   getSupplyDemand(brandId?: number) {
     return http.get<SupplyDemand[]>('/insight/supply-demand', { params: { brandId: resolveBrandId(brandId) } }).then((res) => res.data)
   },
-  getInsightCards(brandId?: number) {
-    return http.get<InsightCardView[]>('/insight/cards', { params: { brandId: resolveBrandId(brandId) } }).then((res) => res.data)
+  getInsightCards(brandId?: number, platform?: string) {
+    return http
+      .get<InsightCardView[]>('/insight/cards', {
+        params: { brandId: resolveBrandId(brandId), platform: platform || undefined }
+      })
+      .then((res) => res.data)
   },
   getInsightSummary(brandId?: number, platform?: string) {
     return http

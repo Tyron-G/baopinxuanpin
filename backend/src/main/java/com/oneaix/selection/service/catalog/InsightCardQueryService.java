@@ -5,6 +5,9 @@ import com.oneaix.selection.entity.BrandInfo;
 import com.oneaix.selection.entity.InsightCard;
 import com.oneaix.selection.service.BrandService;
 import com.oneaix.selection.service.constraint.BrandConstraintEvaluator;
+import com.oneaix.selection.enums.PlatformView;
+import com.oneaix.selection.service.insight.InsightCardMarketGrowthEnricher;
+import com.oneaix.selection.service.insight.InsightMarketDataService;
 import com.oneaix.selection.service.insight.InsightViewAssembler;
 import org.springframework.stereotype.Service;
 
@@ -20,17 +23,23 @@ public class InsightCardQueryService {
     private final InsightCardCatalogService catalogService;
     private final BrandConstraintEvaluator constraintEvaluator;
     private final InsightViewAssembler viewAssembler;
+    private final InsightMarketDataService marketDataService;
+    private final InsightCardMarketGrowthEnricher marketGrowthEnricher;
 
     public InsightCardQueryService(
             BrandService brandService,
             InsightCardCatalogService catalogService,
             BrandConstraintEvaluator constraintEvaluator,
-            InsightViewAssembler viewAssembler
+            InsightViewAssembler viewAssembler,
+            InsightMarketDataService marketDataService,
+            InsightCardMarketGrowthEnricher marketGrowthEnricher
     ) {
         this.brandService = brandService;
         this.catalogService = catalogService;
         this.constraintEvaluator = constraintEvaluator;
         this.viewAssembler = viewAssembler;
+        this.marketDataService = marketDataService;
+        this.marketGrowthEnricher = marketGrowthEnricher;
     }
 
     public BrandInfo requireBrand(Long brandId) {
@@ -47,6 +56,15 @@ public class InsightCardQueryService {
     }
 
     public List<InsightCardView> rankedViews(BrandInfo brand, List<InsightCard> catalog) {
+        return rankedViews(brand, catalog, PlatformView.ALL.getLabel());
+    }
+
+    public List<InsightCardView> rankedViews(BrandInfo brand, List<InsightCard> catalog, String platform) {
+        Set<String> visible = visibleCategories(brand, catalog);
+        List<com.oneaix.selection.entity.CategoryTrend> trends = marketDataService.trends(visible);
+        catalog.stream()
+                .filter(card -> visible.contains(card.getCategoryName()))
+                .forEach(card -> marketGrowthEnricher.applyOne(card, trends, platform));
         List<InsightCard> ranked = constraintEvaluator.filterAndRankCards(brand, catalog);
         return viewAssembler.toViews(brand, ranked);
     }

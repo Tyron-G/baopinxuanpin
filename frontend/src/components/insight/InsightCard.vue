@@ -56,7 +56,7 @@
         <dd>{{ view.card.marketSize }}</dd>
       </div>
       <div>
-        <dt>市场增速</dt>
+        <dt>12月同比</dt>
         <dd>{{ view.card.marketGrowth }}</dd>
       </div>
       <div>
