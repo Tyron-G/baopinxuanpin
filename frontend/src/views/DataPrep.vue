@@ -316,6 +316,7 @@ import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import { TrendCharts } from '@element-plus/icons-vue'
 import { api } from '@/api'
 import { getBrandId, setBrandId } from '@/composables/useBrandContext'
+import { DEFAULT_PLATFORM_VIEW } from '@/constants/brand'
 import { getApiErrorMessage } from '@/lib/apiError'
 import type { BrandRequest, WorkflowProgress } from '@/types'
 import PageHero from '@/components/common/PageHero.vue'
@@ -413,11 +414,11 @@ const rules: FormRules = {
 }
 
 function goInsight() {
-  router.push({ path: '/insight', query: { brandId: getBrandId() } })
+  router.push({ path: '/insight', query: { brandId: getBrandId(), platform: DEFAULT_PLATFORM_VIEW } })
 }
 
 async function loadWorkflow() {
-  workflow.value = await api.getWorkflow(getBrandId())
+  workflow.value = await api.getWorkflow(getBrandId(), DEFAULT_PLATFORM_VIEW)
 }
 
 async function submit() {
@@ -428,9 +429,9 @@ async function submit() {
     const brand = await api.createBrand(form)
     setBrandId(brand.id)
     sessionStorage.setItem('selection-brand-saved', '1')
-    workflow.value = await api.getWorkflow(brand.id)
+    workflow.value = await api.getWorkflow(brand.id, DEFAULT_PLATFORM_VIEW)
     ElMessage.success(`已生成品牌上下文：${brand.brandName}`)
-    router.push({ path: '/insight', query: { brandId: brand.id } })
+    router.push({ path: '/insight', query: { brandId: brand.id, platform: DEFAULT_PLATFORM_VIEW } })
   } catch (error) {
     ElMessage.error(getApiErrorMessage(error, '提交失败，请检查网络后重试'))
   } finally {

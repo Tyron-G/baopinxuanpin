@@ -1,4 +1,4 @@
-import { DEFAULT_BRAND_ID } from '@/constants/brand'
+import { DEFAULT_BRAND_ID, DEFAULT_PLATFORM_VIEW } from '@/constants/brand'
 
 const STORAGE_KEY = 'selection-brand-id'
 
@@ -13,5 +13,5 @@ export function setBrandId(id: number) {
 }
 
 export function withBrandQuery(extra: Record<string, string | number> = {}) {
-  return { brandId: getBrandId(), ...extra }
+  return { brandId: getBrandId(), platform: DEFAULT_PLATFORM_VIEW, ...extra }
 }

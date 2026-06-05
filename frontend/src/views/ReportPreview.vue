@@ -651,7 +651,7 @@ async function load() {
   try {
     const [reportData, workflowData] = await Promise.all([
       api.exportReport(Number(props.cardId), brandId.value, platformView.value),
-      api.getWorkflow(brandId.value)
+      api.getWorkflow(brandId.value, platformView.value)
     ])
     report.value = normalizeReport(reportData)
     workflow.value = workflowData

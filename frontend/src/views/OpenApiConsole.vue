@@ -22,6 +22,7 @@
           <el-option label="全平台" value="全平台" />
           <el-option label="天猫" value="天猫" />
           <el-option label="抖音" value="抖音" />
+          <el-option label="小红书" value="小红书" />
         </el-select>
       </div>
       <p class="hint">默认密钥见 backend `application.yml` → `selection.open-api.key`</p>

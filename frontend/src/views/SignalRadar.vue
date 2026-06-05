@@ -6,7 +6,7 @@
       description="每日扫描搜索飙升、社媒异常与差评痛点，把值得今天优先判断的 3-5 个信号先提出来。"
     >
       <template #actions>
-        <el-button type="primary" :icon="TrendCharts" @click="router.push({ path: '/insight', query: { brandId } })">
+        <el-button type="primary" :icon="TrendCharts" @click="router.push({ path: '/insight', query: { brandId, platform: selectedPlatform } })">
           进入洞察
         </el-button>
       </template>
@@ -287,8 +287,8 @@ async function load() {
   try {
     const [signalRows, dashboard, workflowData, competitorRows] = await Promise.all([
       api.getSignals(brandId.value, selectedPlatform.value),
-      api.getDashboard(brandId.value),
-      api.getWorkflow(brandId.value),
+      api.getDashboard(brandId.value, selectedPlatform.value),
+      api.getWorkflow(brandId.value, selectedPlatform.value),
       api.getCompetitors(brandId.value)
     ])
     signals.value = signalRows
@@ -319,7 +319,7 @@ function fillDemoWebhook() {
 async function sendDigest() {
   pushing.value = true
   try {
-    const result = await api.pushDigest(brandId.value)
+    const result = await api.pushDigest(brandId.value, selectedPlatform.value)
     const detail = result.channelResults?.join('；') ?? ''
     ElMessage[result.success ? 'success' : 'warning'](detail ? `${result.message}（${detail}）` : result.message)
     deliveries.value = result.deliveries?.length
@@ -437,12 +437,7 @@ watch(
 watch(selectedPlatform, async (platform) => {
   if (!platformReady.value) return
   router.replace({ query: { ...route.query, brandId: brandId.value, platform } })
-  loading.value = true
-  try {
-    await loadSignals()
-  } finally {
-    loading.value = false
-  }
+  await load()
 })
 </script>
 

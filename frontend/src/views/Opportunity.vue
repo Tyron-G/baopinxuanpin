@@ -837,7 +837,7 @@ async function load() {
   try {
     const [detailData, workflowData] = await Promise.all([
       api.getOpportunity(Number(props.cardId), brandId.value, platformView.value),
-      api.getWorkflow(brandId.value)
+      api.getWorkflow(brandId.value, platformView.value)
     ])
     detail.value = normalizeOpportunityDetail(detailData)
     workflow.value = workflowData

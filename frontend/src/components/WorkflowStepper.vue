@@ -58,6 +58,7 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { getBrandId } from '@/composables/useBrandContext'
+import { resolvePlatform } from '@/composables/usePlatformContext'
 
 const props = withDefaults(defineProps<{
   current: string
@@ -82,24 +83,27 @@ const baseSteps = [
   { name: 'report', title: '选品报告' }
 ]
 
+const routePlatform = computed(() => resolvePlatform(route.query.platform))
+
 const steps = computed(() => baseSteps.map((step, index) => {
   const workflowStage = props.workflow?.stages.find((item) => item.key === step.name)
+  const baseQuery = { brandId: brandId.value, platform: routePlatform.value }
   return {
     ...step,
     index: index + 1,
     status: workflowStage?.status ?? fallbackStatus(step.name),
     summary: workflowStage?.summary ?? '',
     to: step.name === 'data-prep'
-      ? { path: '/data-prep', query: { brandId: brandId.value } }
+      ? { path: '/data-prep', query: baseQuery }
       : step.name === 'radar'
-        ? { path: '/radar', query: { brandId: brandId.value } }
+        ? { path: '/radar', query: baseQuery }
         : step.name === 'insight'
-          ? { path: '/insight', query: { brandId: brandId.value } }
+          ? { path: '/insight', query: baseQuery }
           : step.name === 'ranking'
-            ? { path: '/ranking', query: { brandId: brandId.value } }
+            ? { path: '/ranking', query: baseQuery }
             : step.name === 'opportunity'
-            ? { path: `/opportunity/${props.bestCardId}`, query: { brandId: brandId.value } }
-            : { path: `/report/${props.bestCardId}`, query: { brandId: brandId.value } }
+            ? { path: `/opportunity/${props.bestCardId}`, query: baseQuery }
+            : { path: `/report/${props.bestCardId}`, query: baseQuery }
   }
 }))
 

@@ -61,13 +61,20 @@ public class SignalPushService {
     }
 
     public PushDigestResult pushTodayDigest(Long brandId) {
+        return pushTodayDigest(brandId, PlatformView.ALL.getLabel());
+    }
+
+    public PushDigestResult pushTodayDigest(Long brandId, String platform) {
         BrandSelectionContext context = contextLoader.load(brandId);
-        List<SignalItem> signals = signalRadarService.signals(brandId, PlatformView.ALL.getLabel());
+        String viewPlatform = platform == null || platform.isBlank()
+                ? PlatformView.ALL.getLabel()
+                : PlatformView.normalize(platform).getLabel();
+        List<SignalItem> signals = signalRadarService.signals(brandId, viewPlatform);
         List<PushChannelConfig> channels = pushChannelRepository.listEnabled(brandId);
         if (channels.isEmpty()) {
             return new PushDigestResult(false, "未配置已启用的推送渠道", signals.size(), List.of(), List.of());
         }
-        String body = buildDigestText(context.brand().getBrandName(), signals);
+        String body = buildDigestText(context.brand().getBrandName(), viewPlatform, signals);
         List<String> results = new ArrayList<>();
         List<PushDeliveryRecord> deliveries = new ArrayList<>();
         boolean allOk = true;
@@ -83,9 +90,9 @@ public class SignalPushService {
         return new PushDigestResult(allOk, message, signals.size(), results, deliveries);
     }
 
-    private String buildDigestText(String brandName, List<SignalItem> signals) {
+    private String buildDigestText(String brandName, String viewPlatform, List<SignalItem> signals) {
         StringBuilder builder = new StringBuilder();
-        builder.append("【爆品选品雷达】").append(brandName).append(" · 今日新发现\n");
+        builder.append("【爆品选品雷达】").append(brandName).append(" · ").append(viewPlatform).append(" · 今日新发现\n");
         int limit = Math.min(5, signals.size());
         for (int i = 0; i < limit; i++) {
             SignalItem item = signals.get(i);

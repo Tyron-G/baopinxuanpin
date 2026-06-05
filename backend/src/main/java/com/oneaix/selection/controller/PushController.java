@@ -49,9 +49,10 @@ public class PushController {
 
     @PostMapping("/digest")
     public PushDigestResult pushDigest(
-            @RequestParam(defaultValue = ApiConstants.DEFAULT_BRAND_ID_PARAM) @Min(1) Long brandId
+            @RequestParam(defaultValue = ApiConstants.DEFAULT_BRAND_ID_PARAM) @Min(1) Long brandId,
+            @RequestParam(required = false) String platform
     ) {
-        return signalPushService.pushTodayDigest(brandId);
+        return signalPushService.pushTodayDigest(brandId, platform);
     }
 
     @GetMapping("/deliveries")

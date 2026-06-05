@@ -205,8 +205,12 @@ export const api = {
   savePushConfig(brandId: number, payload: { channelType: string; webhookUrl: string; enabled: boolean }) {
     return http.post<PushChannelConfig>('/push/config', payload, { params: { brandId } }).then((res) => res.data)
   },
-  pushDigest(brandId?: number) {
-    return http.post<PushDigestResult>('/push/digest', null, { params: { brandId: resolveBrandId(brandId) } }).then((res) => res.data)
+  pushDigest(brandId?: number, platform?: string) {
+    return http
+      .post<PushDigestResult>('/push/digest', null, {
+        params: { brandId: resolveBrandId(brandId), platform }
+      })
+      .then((res) => res.data)
   },
   getPushDeliveries(brandId?: number, limit = 10) {
     return http

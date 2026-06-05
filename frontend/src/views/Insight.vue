@@ -491,7 +491,7 @@ async function loadInsight() {
     api.getSupplyDemand(id, activePlatform.value),
     api.getInsightCards(id, activePlatform.value),
     api.getInsightSummary(id, activePlatform.value),
-    api.getWorkflow(id)
+    api.getWorkflow(id, activePlatform.value)
   ])
   trends.value = trendRows
   competition.value = competitionRows
