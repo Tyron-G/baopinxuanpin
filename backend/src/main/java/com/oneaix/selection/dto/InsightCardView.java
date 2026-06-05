@@ -15,6 +15,7 @@ public record InsightCardView(
         List<ReasonItem> reasons,
         List<RiskItem> risks,
         BrandFitDetail brandFitDetail,
-        List<ConstraintMismatch> mismatches
+        List<ConstraintMismatch> mismatches,
+        java.math.BigDecimal homogeneityScore
 ) {
 }

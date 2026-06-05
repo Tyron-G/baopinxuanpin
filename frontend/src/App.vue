@@ -33,8 +33,30 @@
           </article>
         </section>
 
+        <section v-if="workspaces.length > 1" class="workspace-switch panel pad">
+          <span class="eyebrow">品牌工作区</span>
+          <el-select
+            :model-value="brandId"
+            size="small"
+            style="width: 100%; margin-top: 6px"
+            @change="switchWorkspace"
+          >
+            <el-option
+              v-for="item in workspaces"
+              :key="item.brandId"
+              :label="item.brandName"
+              :value="item.brandId"
+            />
+          </el-select>
+        </section>
+
+        <section v-if="corePromise" class="core-promise-mini panel pad">
+          <span class="eyebrow">核心承诺（推算）</span>
+          <p>{{ corePromise.narrative }}</p>
+        </section>
+
         <section v-if="productMetrics" class="product-metrics-mini">
-          <span class="eyebrow">运营 KPI（样例）</span>
+          <span class="eyebrow">{{ productMetrics.demoData ? '运营 KPI（样例）' : '运营 KPI（应用内推算）' }}</span>
           <article v-for="item in productMetrics.metrics.slice(0, 3)" :key="item.key">
             <span>{{ item.label }}</span>
             <b>{{ item.actualValue }}</b>
@@ -56,16 +78,19 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { api } from '@/api'
 import { getBrandId, setBrandId } from '@/composables/useBrandContext'
 import WorkflowStepper from '@/components/WorkflowStepper.vue'
-import type { DashboardSummary, ProductMetricsKpi, WorkflowProgress } from '@/types'
+import type { BrandWorkspaceItem, CorePromiseMetrics, DashboardSummary, ProductMetricsKpi, WorkflowProgress } from '@/types'
 
 const route = useRoute()
+const router = useRouter()
 const dashboard = ref<DashboardSummary>()
 const workflow = ref<WorkflowProgress>()
 const productMetrics = ref<ProductMetricsKpi>()
+const corePromise = ref<CorePromiseMetrics>()
+const workspaces = ref<BrandWorkspaceItem[]>([])
 
 const brandId = computed(() => {
   const queryId = Number(route.query.brandId)
@@ -110,14 +135,24 @@ async function loadShellData() {
   const id = brandId.value
   setBrandId(id)
   const platform = shellPlatform.value
-  const [dash, flow, metrics] = await Promise.all([
+  const [dash, flow, metrics, promise, workspaceRows] = await Promise.all([
     api.getDashboard(id, platform),
     api.getWorkflow(id, platform),
-    api.getProductMetrics()
+    api.getProductMetrics(id),
+    api.getCorePromiseMetrics(id),
+    api.listBrandWorkspaces(id)
   ])
   dashboard.value = dash
   workflow.value = flow
   productMetrics.value = metrics
+  corePromise.value = promise
+  workspaces.value = workspaceRows
+}
+
+function switchWorkspace(nextId: number) {
+  setBrandId(nextId)
+  router.replace({ path: route.path, query: { ...route.query, brandId: nextId } })
+  loadShellData()
 }
 
 onMounted(loadShellData)

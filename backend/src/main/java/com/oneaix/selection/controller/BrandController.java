@@ -1,6 +1,8 @@
 package com.oneaix.selection.controller;
 
+import com.oneaix.selection.constant.ApiConstants;
 import com.oneaix.selection.dto.BrandRequest;
+import com.oneaix.selection.dto.BrandWorkspaceItem;
 import com.oneaix.selection.entity.BrandInfo;
 import com.oneaix.selection.exception.ResourceNotFoundException;
 import com.oneaix.selection.service.BrandService;
@@ -13,7 +15,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @Validated
 @RestController
@@ -35,5 +40,12 @@ public class BrandController {
     public BrandInfo findById(@PathVariable @Min(1) Long id) {
         return brandService.findById(id)
                 .orElseThrow(() -> ResourceNotFoundException.brand(id));
+    }
+
+    @GetMapping("/workspaces")
+    public List<BrandWorkspaceItem> workspaces(
+            @RequestParam(defaultValue = ApiConstants.DEFAULT_BRAND_ID_PARAM) @Min(1) Long brandId
+    ) {
+        return brandService.listWorkspaces(brandId);
     }
 }

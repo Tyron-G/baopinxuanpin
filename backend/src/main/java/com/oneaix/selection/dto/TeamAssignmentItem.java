@@ -7,6 +7,8 @@ public record TeamAssignmentItem(
         String actionTitle,
         String assigneeName,
         String status,
+        String approvalStatus,
+        String approverName,
         String note
 ) {
 }

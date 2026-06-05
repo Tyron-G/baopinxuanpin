@@ -35,7 +35,10 @@ class PainPointListBuilderTest {
                         List.of("卡粮", "噪音"), List.of()
                 )
         ));
-        PainPointListBuilder builder = new PainPointListBuilder(new CompetitorComplaintAggregator(competitorService));
+        PainPointListBuilder builder = new PainPointListBuilder(
+                new CompetitorComplaintAggregator(competitorService),
+                new ComplaintSentimentClassifier()
+        );
         var items = builder.build(1L, List.of(view("宠物智能用品")));
         assertEquals("卡粮", items.get(0).topic());
         assertTrue(items.get(0).summary().contains("竞品样本"));
@@ -43,7 +46,10 @@ class PainPointListBuilderTest {
 
     @Test
     void shouldReturnEmptyWhenNoCards() {
-        PainPointListBuilder builder = new PainPointListBuilder(new CompetitorComplaintAggregator(competitorService));
+        PainPointListBuilder builder = new PainPointListBuilder(
+                new CompetitorComplaintAggregator(competitorService),
+                new ComplaintSentimentClassifier()
+        );
         assertTrue(builder.build(1L, List.of()).isEmpty());
     }
 
@@ -53,7 +59,7 @@ class PainPointListBuilderTest {
         return new InsightCardView(
                 card, false, true, List.of(), "推荐立项",
                 new ScoreBreakdown(30, 20, 15, 10, 0, 75, 80),
-                List.of(), List.of(), null, List.of()
+                List.of(), List.of(), null, List.of(), null
         );
     }
 }

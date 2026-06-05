@@ -3,7 +3,7 @@
     <div class="section-title chart-head">
       <div>
         <h2>机会在哪里</h2>
-        <p>近 6 个月搜索热度与销量趋势</p>
+        <p>近 12 个月搜索热度与销量趋势</p>
       </div>
       <div class="chart-toolbar-card">
         <span>平台视角</span>
@@ -70,7 +70,10 @@ const filteredRows = computed(() => {
   const matched = props.rows.filter((item) => item.platform === activePlatform.value)
   return matched.length ? matched : props.rows.filter((item) => item.platform === '全平台')
 })
-const months = computed(() => [...new Set(filteredRows.value.map((item) => item.trendMonth))])
+const months = computed(() => {
+  const all = [...new Set(filteredRows.value.map((item) => item.trendMonth))].sort()
+  return all.length > 12 ? all.slice(all.length - 12) : all
+})
 const categories = computed(() => [...new Set(filteredRows.value.map((item) => item.categoryName))])
 const latestRows = computed(() =>
   categories.value.map((category) =>

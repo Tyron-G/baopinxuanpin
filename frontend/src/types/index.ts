@@ -78,6 +78,7 @@ export interface InsightCardView {
   risks: RiskItem[]
   brandFitDetail: BrandFitDetail
   mismatches: ConstraintMismatch[]
+  homogeneityScore?: number | null
 }
 
 export interface SignalItem {
@@ -386,10 +387,27 @@ export interface SupplyMatchItem {
   matchReason: string
 }
 
+export interface BrandWorkspaceItem {
+  brandId: number
+  brandName: string
+  industry: string
+  targetPlatforms: string
+  current: boolean
+}
+
+export interface CorePromiseMetrics {
+  earlySignalLeadDays: number
+  recommendHitRatePercent: number
+  decisionSuccessProxyPercent: number
+  narrative: string
+}
+
 export interface TeamMemberItem {
   id: number
   memberName: string
   roleLabel: string
+  permissionLevel: string
+  accountId?: string | null
   email?: string
 }
 
@@ -399,6 +417,8 @@ export interface TeamAssignmentItem {
   actionTitle: string
   assigneeName: string
   status: string
+  approvalStatus: string
+  approverName?: string | null
   note?: string
 }
 
@@ -506,6 +526,7 @@ export interface BrandSelectionModelProfile {
   modelVersion: string
   trainingSummary: string
   expectedAccuracyGain: string
+  trainingPipelineSteps: string[]
 }
 
 export interface ScoreBreakdown {

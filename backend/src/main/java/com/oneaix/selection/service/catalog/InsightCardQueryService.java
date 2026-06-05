@@ -6,6 +6,7 @@ import com.oneaix.selection.entity.InsightCard;
 import com.oneaix.selection.service.BrandService;
 import com.oneaix.selection.service.constraint.BrandConstraintEvaluator;
 import com.oneaix.selection.enums.PlatformView;
+import com.oneaix.selection.service.insight.InsightCardHomogeneityEnricher;
 import com.oneaix.selection.service.insight.InsightCardMarketGrowthEnricher;
 import com.oneaix.selection.service.insight.InsightMarketDataService;
 import com.oneaix.selection.service.insight.InsightViewAssembler;
@@ -25,6 +26,7 @@ public class InsightCardQueryService {
     private final InsightViewAssembler viewAssembler;
     private final InsightMarketDataService marketDataService;
     private final InsightCardMarketGrowthEnricher marketGrowthEnricher;
+    private final InsightCardHomogeneityEnricher homogeneityEnricher;
 
     public InsightCardQueryService(
             BrandService brandService,
@@ -32,7 +34,8 @@ public class InsightCardQueryService {
             BrandConstraintEvaluator constraintEvaluator,
             InsightViewAssembler viewAssembler,
             InsightMarketDataService marketDataService,
-            InsightCardMarketGrowthEnricher marketGrowthEnricher
+            InsightCardMarketGrowthEnricher marketGrowthEnricher,
+            InsightCardHomogeneityEnricher homogeneityEnricher
     ) {
         this.brandService = brandService;
         this.catalogService = catalogService;
@@ -40,6 +43,7 @@ public class InsightCardQueryService {
         this.viewAssembler = viewAssembler;
         this.marketDataService = marketDataService;
         this.marketGrowthEnricher = marketGrowthEnricher;
+        this.homogeneityEnricher = homogeneityEnricher;
     }
 
     public BrandInfo requireBrand(Long brandId) {
@@ -66,7 +70,11 @@ public class InsightCardQueryService {
                 .filter(card -> visible.contains(card.getCategoryName()))
                 .forEach(card -> marketGrowthEnricher.applyOne(card, trends, platform));
         List<InsightCard> ranked = constraintEvaluator.filterAndRankCards(brand, catalog);
-        return viewAssembler.toViews(brand, ranked);
+        return homogeneityEnricher.enrich(
+                viewAssembler.toViews(brand, ranked),
+                visible,
+                platform
+        );
     }
 
     public Set<String> visibleCategories(BrandInfo brand, List<InsightCard> catalog) {

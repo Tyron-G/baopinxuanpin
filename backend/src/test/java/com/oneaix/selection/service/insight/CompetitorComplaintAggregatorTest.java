@@ -48,7 +48,7 @@ class CompetitorComplaintAggregatorTest {
         return new InsightCardView(
                 card, false, true, List.of(), "推荐立项",
                 new ScoreBreakdown(30, 20, 15, 10, 0, 75, 80),
-                List.of(), List.of(), null, List.of()
+                List.of(), List.of(), null, List.of(), null
         );
     }
 }

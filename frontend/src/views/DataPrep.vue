@@ -23,6 +23,8 @@
 
     <DataConnectorsPanel />
 
+    <DataDimensionCoverage />
+
     <section class="panel pad industry-report-panel">
       <span class="eyebrow">行业报告（样例）</span>
       <h2>行业报告 · 社媒舆情 · 电商 · 搜索</h2>
@@ -322,6 +324,7 @@ import type { BrandRequest, WorkflowProgress } from '@/types'
 import PageHero from '@/components/common/PageHero.vue'
 import WorkflowSummary from '@/components/common/WorkflowSummary.vue'
 import DataConnectorsPanel from '@/components/common/DataConnectorsPanel.vue'
+import DataDimensionCoverage from '@/components/common/DataDimensionCoverage.vue'
 
 const router = useRouter()
 const formRef = ref<FormInstance>()

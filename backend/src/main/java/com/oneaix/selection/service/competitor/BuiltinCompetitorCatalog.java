@@ -103,6 +103,10 @@ public final class BuiltinCompetitorCatalog {
                 new String[]{"太力收纳官方", "佳帮手家居", "旅行收纳工坊"},
                 new PlatformView[]{PlatformView.TMALL, PlatformView.TMALL, PlatformView.DOUYIN},
                 new int[]{19, 14, 10}, CROSS_COMPLAINTS));
+        shops.add(shop(9L, profiles.get(8).categoryName(), "Amazon Basics 收纳", PlatformView.AMAZON, 8,
+                List.of(CROSS_COMPLAINTS[2]), 4));
+        shops.add(shop(9L, profiles.get(8).categoryName(), "Shopee 家居精选", PlatformView.SHOPEE, 6,
+                List.of(CROSS_COMPLAINTS[0]), 5));
         shops.addAll(categoryShops(profiles.get(9).categoryName(), 10L,
                 new String[]{"Anker 安克创新", "倍思数码", "绿联官方店"},
                 new PlatformView[]{PlatformView.TMALL, PlatformView.DOUYIN, PlatformView.TMALL},

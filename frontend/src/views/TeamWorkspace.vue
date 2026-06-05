@@ -10,6 +10,8 @@
         <el-table :data="members" stripe size="small">
           <el-table-column prop="memberName" label="姓名" />
           <el-table-column prop="roleLabel" label="角色" />
+          <el-table-column prop="permissionLevel" label="权限" width="100" />
+          <el-table-column prop="accountId" label="账号" width="120" />
           <el-table-column prop="email" label="邮箱" />
         </el-table>
       </section>
@@ -22,7 +24,29 @@
           <el-table-column prop="actionTitle" label="动作" min-width="160" />
           <el-table-column prop="assigneeName" label="负责人" width="120" />
           <el-table-column prop="status" label="状态" width="100" />
+          <el-table-column prop="approvalStatus" label="审批" width="100" />
+          <el-table-column prop="approverName" label="审批人" width="100" />
           <el-table-column prop="cardId" label="cardId" width="90" />
+          <el-table-column label="操作" width="160">
+            <template #default="{ row }">
+              <el-button
+                v-if="row.approvalStatus === 'pending'"
+                link
+                type="primary"
+                @click="approve(row)"
+              >
+                通过
+              </el-button>
+              <el-button
+                v-if="row.approvalStatus === 'pending'"
+                link
+                type="danger"
+                @click="reject(row)"
+              >
+                驳回
+              </el-button>
+            </template>
+          </el-table-column>
         </el-table>
       </section>
     </div>
@@ -31,6 +55,14 @@
       <el-form label-width="80px">
         <el-form-item label="姓名"><el-input v-model="memberForm.memberName" /></el-form-item>
         <el-form-item label="角色"><el-input v-model="memberForm.roleLabel" /></el-form-item>
+        <el-form-item label="权限">
+          <el-select v-model="memberForm.permissionLevel" style="width: 100%">
+            <el-option label="只读 viewer" value="viewer" />
+            <el-option label="编辑 editor" value="editor" />
+            <el-option label="管理员 admin" value="admin" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="账号 ID"><el-input v-model="memberForm.accountId" placeholder="account-xxx" /></el-form-item>
         <el-form-item label="邮箱"><el-input v-model="memberForm.email" /></el-form-item>
       </el-form>
       <template #footer>
@@ -70,7 +102,7 @@ const members = ref<TeamMemberItem[]>([])
 const assignments = ref<TeamAssignmentItem[]>([])
 const showMember = ref(false)
 const showAssign = ref(false)
-const memberForm = ref({ memberName: '', roleLabel: '电商运营', email: '' })
+const memberForm = ref({ memberName: '', roleLabel: '电商运营', permissionLevel: 'editor', email: '', accountId: '' })
 const assignForm = ref({ actionTitle: '', assigneeName: '', cardId: 1, note: '' })
 
 async function load() {
@@ -97,6 +129,18 @@ async function saveAssign() {
   })
   showAssign.value = false
   ElMessage.success('任务已分派')
+  await load()
+}
+
+async function approve(row: TeamAssignmentItem) {
+  await api.approveTeamAssignment(getBrandId(), row.id, '陈负责人')
+  ElMessage.success('已通过审批')
+  await load()
+}
+
+async function reject(row: TeamAssignmentItem) {
+  await api.rejectTeamAssignment(getBrandId(), row.id, '陈负责人', '需补充验证数据')
+  ElMessage.success('已驳回')
   await load()
 }
 

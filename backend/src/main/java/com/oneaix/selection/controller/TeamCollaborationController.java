@@ -41,9 +41,11 @@ public class TeamCollaborationController {
             @RequestParam(defaultValue = ApiConstants.DEFAULT_BRAND_ID_PARAM) @Min(1) Long brandId,
             @RequestParam @NotBlank String memberName,
             @RequestParam @NotBlank String roleLabel,
-            @RequestParam(required = false) String email
+            @RequestParam(defaultValue = "editor") String permissionLevel,
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) String accountId
     ) {
-        return teamCollaborationService.addMember(brandId, memberName, roleLabel, email);
+        return teamCollaborationService.addMember(brandId, memberName, roleLabel, permissionLevel, email, accountId);
     }
 
     @GetMapping("/assignments")
@@ -63,5 +65,24 @@ public class TeamCollaborationController {
             @RequestParam(required = false) String note
     ) {
         return teamCollaborationService.assign(brandId, cardId, actionTitle, assigneeName, status, note);
+    }
+
+    @PostMapping("/assignments/approve")
+    public TeamAssignmentItem approve(
+            @RequestParam(defaultValue = ApiConstants.DEFAULT_BRAND_ID_PARAM) @Min(1) Long brandId,
+            @RequestParam @Min(1) Long assignmentId,
+            @RequestParam @NotBlank String approverName
+    ) {
+        return teamCollaborationService.approve(brandId, assignmentId, approverName);
+    }
+
+    @PostMapping("/assignments/reject")
+    public TeamAssignmentItem reject(
+            @RequestParam(defaultValue = ApiConstants.DEFAULT_BRAND_ID_PARAM) @Min(1) Long brandId,
+            @RequestParam @Min(1) Long assignmentId,
+            @RequestParam @NotBlank String approverName,
+            @RequestParam(required = false) String note
+    ) {
+        return teamCollaborationService.reject(brandId, assignmentId, approverName, note);
     }
 }

@@ -59,7 +59,8 @@ public class InsightViewAssembler {
                 buildReasonItems(brand, card, evaluation),
                 buildRiskItems(brand, card),
                 buildBrandFitDetail(brand, card, evaluation),
-                constraintEvaluator.buildConstraintMismatches(brand, card)
+                constraintEvaluator.buildConstraintMismatches(brand, card),
+                null
         );
     }
 

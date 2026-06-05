@@ -61,7 +61,10 @@ public class JdbcBrandSelectionModelRepository {
                 rs.getDouble("risk_penalty_weight"),
                 rs.getString("model_version"),
                 rs.getString("training_summary"),
-                "brand-v1".equals(rs.getString("model_version")) ? "+18%（相对通用模型）" : "基线"
+                rs.getString("model_version").startsWith("brand-v1")
+                        ? "+18%（相对通用模型）"
+                        : "基线",
+                List.of("从库加载已训练权重", "可在页面触发 retrain 刷新流水线")
         );
     }
 }

@@ -190,6 +190,8 @@ CREATE TABLE team_member (
   brand_id BIGINT NOT NULL,
   member_name VARCHAR(80) NOT NULL,
   role_label VARCHAR(40) NOT NULL,
+  permission_level VARCHAR(20) NOT NULL DEFAULT 'editor',
+  account_id VARCHAR(64),
   email VARCHAR(120),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -201,6 +203,8 @@ CREATE TABLE team_assignment (
   action_title VARCHAR(200) NOT NULL,
   assignee_name VARCHAR(80) NOT NULL,
   status VARCHAR(40) NOT NULL,
+  approval_status VARCHAR(20) NOT NULL DEFAULT 'pending',
+  approver_name VARCHAR(80),
   note VARCHAR(500),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

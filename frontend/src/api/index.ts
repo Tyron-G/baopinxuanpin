@@ -53,8 +53,24 @@ export const api = {
       })
       .then((res) => res.data)
   },
-  getProductMetrics() {
-    return http.get<ProductMetricsKpi>('/dashboard/product-metrics').then((res) => res.data)
+  getProductMetrics(brandId?: number) {
+    return http
+      .get<ProductMetricsKpi>('/dashboard/product-metrics', { params: { brandId: resolveBrandId(brandId) } })
+      .then((res) => res.data)
+  },
+  getCorePromiseMetrics(brandId?: number) {
+    return http
+      .get<import('@/types').CorePromiseMetrics>('/dashboard/core-promise', {
+        params: { brandId: resolveBrandId(brandId) }
+      })
+      .then((res) => res.data)
+  },
+  listBrandWorkspaces(brandId?: number) {
+    return http
+      .get<import('@/types').BrandWorkspaceItem[]>('/brand/workspaces', {
+        params: { brandId: resolveBrandId(brandId) }
+      })
+      .then((res) => res.data)
   },
   getDataConnectors() {
     return http.get<DataConnectorsOverview>('/connectors/overview').then((res) => res.data)
@@ -97,9 +113,26 @@ export const api = {
   getTeamMembers(brandId?: number) {
     return http.get<TeamMemberItem[]>('/team/members', { params: { brandId: resolveBrandId(brandId) } }).then((res) => res.data)
   },
-  addTeamMember(brandId: number, payload: { memberName: string; roleLabel: string; email?: string }) {
+  addTeamMember(
+    brandId: number,
+    payload: { memberName: string; roleLabel: string; permissionLevel?: string; email?: string; accountId?: string }
+  ) {
     return http
       .post<TeamMemberItem>('/team/members', null, { params: { brandId, ...payload } })
+      .then((res) => res.data)
+  },
+  approveTeamAssignment(brandId: number, assignmentId: number, approverName: string) {
+    return http
+      .post<TeamAssignmentItem>('/team/assignments/approve', null, {
+        params: { brandId, assignmentId, approverName }
+      })
+      .then((res) => res.data)
+  },
+  rejectTeamAssignment(brandId: number, assignmentId: number, approverName: string, note?: string) {
+    return http
+      .post<TeamAssignmentItem>('/team/assignments/reject', null, {
+        params: { brandId, assignmentId, approverName, note }
+      })
       .then((res) => res.data)
   },
   getTeamAssignments(brandId?: number) {

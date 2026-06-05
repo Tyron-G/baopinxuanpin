@@ -8,6 +8,9 @@ import com.oneaix.selection.service.brand.BrandProfileNormalizer;
 import com.oneaix.selection.validation.BrandRequestValidator;
 import org.springframework.stereotype.Service;
 
+import com.oneaix.selection.dto.BrandWorkspaceItem;
+
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -53,6 +56,18 @@ public class BrandService {
     /** 按 brandId 严格查询，不存在则 404 2026-06-04 */
     public BrandInfo requireById(Long brandId) {
         return findById(brandId).orElseThrow(() -> ResourceNotFoundException.brand(brandId));
+    }
+
+    public List<BrandWorkspaceItem> listWorkspaces(Long currentBrandId) {
+        return brandInfoMapper.selectList(null).stream()
+                .map(brand -> new BrandWorkspaceItem(
+                        brand.getId(),
+                        brand.getBrandName(),
+                        brand.getIndustry(),
+                        brand.getTargetPlatforms(),
+                        brand.getId().equals(currentBrandId)
+                ))
+                .toList();
     }
 
 }

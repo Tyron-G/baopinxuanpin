@@ -2,7 +2,7 @@
   <section class="panel pad metrics-panel">
     <div class="metrics-head">
       <div>
-        <span class="eyebrow">运营 KPI（样例）</span>
+        <span class="eyebrow">{{ metrics?.demoData ? '运营 KPI（样例）' : '运营 KPI（应用内推算）' }}</span>
         <h3>{{ metrics?.phaseLabel ?? '产品验证指标' }}</h3>
         <p>{{ metrics?.summary ?? '加载中…' }}</p>
       </div>
@@ -20,15 +20,20 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { api } from '@/api'
+import { getBrandId } from '@/composables/useBrandContext'
 import type { ProductMetricsKpi } from '@/types'
 
+const props = defineProps<{ brandId?: number }>()
 const metrics = ref<ProductMetricsKpi>()
 
-onMounted(async () => {
-  metrics.value = await api.getProductMetrics()
-})
+async function load() {
+  metrics.value = await api.getProductMetrics(props.brandId ?? getBrandId())
+}
+
+onMounted(load)
+watch(() => props.brandId, load)
 </script>
 
 <style scoped>

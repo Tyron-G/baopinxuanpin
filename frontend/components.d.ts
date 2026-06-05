@@ -15,6 +15,7 @@ declare module 'vue' {
     CompetitorTimelinePanel: typeof import('./src/components/common/CompetitorTimelinePanel.vue')['default']
     CrowdScene: typeof import('./src/components/opportunity/CrowdScene.vue')['default']
     DataConnectorsPanel: typeof import('./src/components/common/DataConnectorsPanel.vue')['default']
+    DataDimensionCoverage: typeof import('./src/components/common/DataDimensionCoverage.vue')['default']
     DecisionHeroPanel: typeof import('./src/components/common/DecisionHeroPanel.vue')['default']
     DecisionSummary: typeof import('./src/components/common/DecisionSummary.vue')['default']
     ElAlert: typeof import('element-plus/es')['ElAlert']

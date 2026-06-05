@@ -5,6 +5,8 @@ public record TeamMemberItem(
         Long id,
         String memberName,
         String roleLabel,
+        String permissionLevel,
+        String accountId,
         String email
 ) {
 }

@@ -64,6 +64,10 @@
         <dd>{{ view.card.competitionPattern }}</dd>
       </div>
       <div>
+        <dt>同质化评分</dt>
+        <dd>{{ homogeneityLabel }}</dd>
+      </div>
+      <div>
         <dt>竞争难度</dt>
         <dd>{{ view.card.competitionLevel }}</dd>
       </div>
@@ -123,6 +127,11 @@ defineEmits<{ select: [id: number] }>()
 
 const pinned = computed(() => props.view.pinned)
 const focused = computed(() => Boolean(props.focused))
+const homogeneityLabel = computed(() => {
+  const score = props.view.homogeneityScore
+  if (score == null) return '—'
+  return `${Number(score).toFixed(1)} 分`
+})
 
 const tagType = computed(() => {
   if (props.view.card.competitionLevel.includes('高')) return 'danger'

@@ -13,6 +13,10 @@
       <article><span>品牌契合</span><b>{{ profile.brandFitWeight }}</b></article>
       <article><span>风险惩罚</span><b>{{ profile.riskPenaltyWeight }}</b></article>
       <p class="full">{{ profile.trainingSummary }}</p>
+      <h3>训练流水线</h3>
+      <ol class="pipeline">
+        <li v-for="step in profile.trainingPipelineSteps ?? []" :key="step">{{ step }}</li>
+      </ol>
       <el-alert type="success" :title="`预期提升：${profile.expectedAccuracyGain}`" show-icon :closable="false" />
     </section>
   </section>
@@ -53,4 +57,10 @@ onMounted(load)
   gap: 12px;
 }
 .model-grid .full { grid-column: 1 / -1; line-height: 1.7; }
+.pipeline {
+  margin: 0 0 12px;
+  padding-left: 20px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+}
 </style>

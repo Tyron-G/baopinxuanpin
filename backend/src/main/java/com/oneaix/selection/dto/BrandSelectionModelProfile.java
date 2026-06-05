@@ -11,6 +11,7 @@ public record BrandSelectionModelProfile(
         double riskPenaltyWeight,
         String modelVersion,
         String trainingSummary,
-        String expectedAccuracyGain
+        String expectedAccuracyGain,
+        java.util.List<String> trainingPipelineSteps
 ) {
 }

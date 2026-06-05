@@ -14,9 +14,14 @@ public class PainPointListBuilder {
     private static final int MAX_ITEMS = 5;
 
     private final CompetitorComplaintAggregator complaintAggregator;
+    private final ComplaintSentimentClassifier sentimentClassifier;
 
-    public PainPointListBuilder(CompetitorComplaintAggregator complaintAggregator) {
+    public PainPointListBuilder(
+            CompetitorComplaintAggregator complaintAggregator,
+            ComplaintSentimentClassifier sentimentClassifier
+    ) {
         this.complaintAggregator = complaintAggregator;
+        this.sentimentClassifier = sentimentClassifier;
     }
 
     public List<PainPointItem> build(Long brandId, List<InsightCardView> rankedCards) {
@@ -31,11 +36,12 @@ public class PainPointListBuilder {
             if (items.size() >= MAX_ITEMS) {
                 break;
             }
+            String sentiment = sentimentClassifier.polarity(stat.topic(), stat.frequency());
             items.add(new PainPointItem(
                     rank++,
                     stat.topic(),
                     stat.frequency(),
-                    stat.frequency() >= 2 ? "高" : "中",
+                    sentiment,
                     stat.categoryName() + " 差评主题「" + stat.topic() + "」在 "
                             + stat.frequency() + " 个竞品样本中出现（"
                             + String.join("、", stat.shopNames()) + "）。"
