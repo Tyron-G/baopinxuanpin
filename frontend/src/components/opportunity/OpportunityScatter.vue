@@ -51,7 +51,10 @@
         <small>PRD 第三轴：同质化越低、溢价空间越大</small>
       </article>
     </div>
-    <div ref="chartRef" class="chart-box chart-surface"></div>
+    <div v-if="!rows.length" class="chart-empty panel pad">
+      <el-empty description="暂无机会点数据，请确认已选择有效类目并刷新页面。" />
+    </div>
+    <div v-show="rows.length" ref="chartRef" class="chart-box chart-surface"></div>
   </div>
 </template>
 
@@ -65,6 +68,34 @@ const props = defineProps<{ rows: OpportunityPoint[] }>()
 const chartRef = ref<HTMLDivElement>()
 let chart: echarts.ECharts | null = null
 let resizeObserver: ResizeObserver | null = null
+
+type AxisBounds = { xMin: number; xMax: number; yMin: number; yMax: number; xMid: number; yMid: number }
+
+function padAxis(min: number, max: number, minSpan = 12) {
+  const span = Math.max(max - min, minSpan)
+  const padding = Math.max(span * 0.18, 4)
+  return [Math.max(0, min - padding), max + padding] as const
+}
+
+function computeAxisBounds(rows: OpportunityPoint[]): AxisBounds {
+  if (!rows.length) {
+    return { xMin: 0, xMax: 100, yMin: 0, yMax: 100, xMid: 50, yMid: 50 }
+  }
+  const gravities = rows.map((row) => Number(row.opportunityGravity))
+  const resistances = rows.map((row) => resistanceMagnitude(row.competitionResistance))
+  const [xMin, xMax] = padAxis(Math.min(...gravities), Math.max(...gravities))
+  const [yMin, yMax] = padAxis(Math.min(...resistances), Math.max(...resistances))
+  return {
+    xMin,
+    xMax,
+    yMin,
+    yMax,
+    xMid: (xMin + xMax) / 2,
+    yMid: (yMin + yMax) / 2
+  }
+}
+
+const axisBounds = computed(() => computeAxisBounds(props.rows))
 
 const leadPoint = computed(() => props.rows[0])
 const highestProfitPoint = computed(() => [...props.rows].sort((left, right) => right.profitElasticity - left.profitElasticity)[0])
@@ -85,14 +116,14 @@ function shortScenarioLabel(row: OpportunityPoint) {
   return `${base.slice(0, 8)}… ${row.opportunityScore}`
 }
 
-function labelPosition(gravity: number, resistance: number) {
-  if (gravity >= 70 && resistance <= 55) return 'right'
-  if (gravity >= 70 && resistance > 55) return 'top'
-  if (gravity < 70 && resistance <= 55) return 'bottom'
+function labelPosition(gravity: number, resistance: number, bounds: AxisBounds) {
+  if (gravity >= bounds.xMid && resistance <= bounds.yMid) return 'right'
+  if (gravity >= bounds.xMid && resistance > bounds.yMid) return 'top'
+  if (gravity < bounds.xMid && resistance <= bounds.yMid) return 'bottom'
   return 'left'
 }
 
-function toSeriesData(rows: OpportunityPoint[]) {
+function toSeriesData(rows: OpportunityPoint[], bounds: AxisBounds) {
   return rows.map((row) => [
     row.opportunityGravity,
     resistanceMagnitude(row.competitionResistance),
@@ -100,7 +131,7 @@ function toSeriesData(rows: OpportunityPoint[]) {
     row.opportunityLevel,
     row.scenarioText,
     row.targetCrowd,
-    labelPosition(row.opportunityGravity, resistanceMagnitude(row.competitionResistance))
+    labelPosition(row.opportunityGravity, resistanceMagnitude(row.competitionResistance), bounds)
   ])
 }
 
@@ -109,7 +140,13 @@ function resize() {
 }
 
 function render() {
-  if (!chartRef.value) return
+  if (!chartRef.value || !props.rows.length) return
+  const bounds = axisBounds.value
+  const plotWidth = Math.max(chartRef.value.clientWidth - 130, 120)
+  const plotHeight = Math.max(chartRef.value.clientHeight - 130, 120)
+  const xRatio = (value: number) => 84 + ((value - bounds.xMin) / (bounds.xMax - bounds.xMin)) * plotWidth
+  const yRatio = (value: number) => 48 + ((bounds.yMax - value) / (bounds.yMax - bounds.yMin)) * plotHeight
+
   chart ||= echarts.init(chartRef.value)
   chart.setOption({
     tooltip: {
@@ -132,8 +169,8 @@ function render() {
         fontWeight: 600
       },
       type: 'value',
-      min: 40,
-      max: 100,
+      min: bounds.xMin,
+      max: bounds.xMax,
       splitNumber: 6,
       axisLabel: {
         color: '#6b746f',
@@ -166,8 +203,8 @@ function render() {
         fontWeight: 600
       },
       type: 'value',
-      min: 20,
-      max: 90,
+      min: bounds.yMin,
+      max: bounds.yMax,
       splitNumber: 7,
       axisLabel: {
         color: '#6b746f',
@@ -193,10 +230,10 @@ function render() {
       {
         type: 'rect',
         shape: {
-          x: 84 + ((100 - 70) / (100 - 40)) * (chartRef.value?.clientWidth ? (chartRef.value.clientWidth - 130) : 0),
-          y: 48 + ((90 - 55) / (90 - 20)) * (chartRef.value?.clientHeight ? (chartRef.value.clientHeight - 130) : 0),
-          width: (chartRef.value?.clientWidth ? (chartRef.value.clientWidth - 130) : 0) * 0.5,
-          height: (chartRef.value?.clientHeight ? (chartRef.value.clientHeight - 130) : 0) * 0.5
+          x: xRatio(bounds.xMid),
+          y: yRatio(bounds.yMid),
+          width: plotWidth * 0.5,
+          height: plotHeight * 0.5
         },
         silent: true,
         style: {
@@ -289,8 +326,8 @@ function render() {
             width: 1.2
           },
           data: [
-            { xAxis: 70 },
-            { yAxis: 55 }
+            { xAxis: bounds.xMid },
+            { yAxis: bounds.yMid }
           ]
         },
         itemStyle: {
@@ -315,7 +352,7 @@ function render() {
           padding: [4, 8],
           position: (params: any) => params.data[6]
         },
-        data: toSeriesData(normalRows.value)
+        data: toSeriesData(normalRows.value, bounds)
       },
       {
         type: 'scatter',
@@ -346,10 +383,10 @@ function render() {
           padding: [5, 9],
           position: (params: any) => params.data[6]
         },
-        data: toSeriesData(priorityRows.value)
+        data: toSeriesData(priorityRows.value, bounds)
       }
     ]
-  })
+  }, true)
   resize()
 }
 
@@ -498,6 +535,12 @@ defineExpose({ resize })
 
 .chart-surface {
   min-height: 360px;
+}
+
+.chart-empty {
+  min-height: 280px;
+  display: grid;
+  place-items: center;
 }
 
 p {

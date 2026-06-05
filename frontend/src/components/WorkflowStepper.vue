@@ -27,8 +27,8 @@
       </article>
       <article>
         <span>最佳机会</span>
-        <b>#{{ props.bestCardId }}</b>
-        <small>当前主链路默认回落到该机会与报告页</small>
+        <b>{{ bestCategoryLabel }}</b>
+        <small>{{ bestOpportunityHint }}</small>
       </article>
       <article>
         <span>当前判断</span>
@@ -60,13 +60,13 @@ import { useRoute } from 'vue-router'
 import { getBrandId } from '@/composables/useBrandContext'
 import { resolvePlatform } from '@/composables/usePlatformContext'
 
-const props = withDefaults(defineProps<{
+const props = defineProps<{
   current: string
-  bestCardId?: number
+  bestCardId?: number | null
+  bestCategoryName?: string
+  bestScore?: number
   workflow?: import('@/types').WorkflowProgress
-}>(), {
-  bestCardId: 1
-})
+}>()
 
 const route = useRoute()
 const brandId = computed(() => {
@@ -85,6 +85,24 @@ const baseSteps = [
 
 const routePlatform = computed(() => resolvePlatform(route.query.platform))
 
+const bestCategoryLabel = computed(() => {
+  const name = props.bestCategoryName?.trim()
+  if (name && name !== '-') return name
+  if (props.bestCardId) return `候选 #${props.bestCardId}`
+  return '待生成'
+})
+
+const bestOpportunityHint = computed(() => {
+  const name = props.bestCategoryName?.trim()
+  if (name && name !== '-' && props.bestScore) {
+    return `机会分 ${props.bestScore} · 点击进入机会与报告页`
+  }
+  if (props.bestCardId) {
+    return `卡片 #${props.bestCardId} · 完成洞察后自动更新`
+  }
+  return '完成数据准备与洞察分析后显示最佳候选'
+})
+
 const steps = computed(() => baseSteps.map((step, index) => {
   const workflowStage = props.workflow?.stages.find((item) => item.key === step.name)
   const baseQuery = { brandId: brandId.value, platform: routePlatform.value }
@@ -102,8 +120,12 @@ const steps = computed(() => baseSteps.map((step, index) => {
           : step.name === 'ranking'
             ? { path: '/ranking', query: baseQuery }
             : step.name === 'opportunity'
-            ? { path: `/opportunity/${props.bestCardId}`, query: baseQuery }
-            : { path: `/report/${props.bestCardId}`, query: baseQuery }
+            ? props.bestCardId
+              ? { path: `/opportunity/${props.bestCardId}`, query: baseQuery }
+              : { path: '/insight', query: baseQuery }
+            : props.bestCardId
+              ? { path: `/report/${props.bestCardId}`, query: baseQuery }
+              : { path: '/ranking', query: baseQuery }
   }
 }))
 

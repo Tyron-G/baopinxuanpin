@@ -668,6 +668,11 @@ function backToOpportunity() {
   router.push({ path: `/opportunity/${props.cardId}`, query: { brandId: brandId.value, platform: platformView.value } })
 }
 
+function exportBinaryFileName(sourceName: string | undefined, extension: 'pdf' | 'xlsx') {
+  const base = (sourceName ?? '选品报告').replace(/\.md$/i, '').replace(/\.(pdf|xlsx)$/i, '')
+  return `${base}.${extension}`
+}
+
 function downloadBlob(blob: Blob, fileName: string) {
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
@@ -695,7 +700,7 @@ async function downloadExcel() {
   exporting.value = true
   try {
     const response = await api.downloadReportExcel(Number(props.cardId), brandId.value, platformView.value)
-    downloadBlob(response.data, `${report.value?.fileName ?? 'report'}.xlsx`)
+    downloadBlob(response.data, exportBinaryFileName(report.value?.fileName, 'xlsx'))
     ElMessage.success('Excel 报告已导出')
   } catch (error) {
     ElMessage.error(getApiErrorMessage(error, 'Excel 导出失败'))
@@ -708,7 +713,7 @@ async function downloadPdf() {
   exporting.value = true
   try {
     const response = await api.downloadReportPdf(Number(props.cardId), brandId.value, platformView.value)
-    downloadBlob(response.data, `${report.value?.fileName ?? 'report'}.pdf`)
+    downloadBlob(response.data, exportBinaryFileName(report.value?.fileName, 'pdf'))
     ElMessage.success('PDF 报告已导出')
   } catch (error) {
     ElMessage.error(getApiErrorMessage(error, 'PDF 导出失败'))

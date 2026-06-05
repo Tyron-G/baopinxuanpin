@@ -5,8 +5,10 @@ import com.oneaix.selection.dto.SelectionReport;
 import com.oneaix.selection.enums.PlatformView;
 import com.oneaix.selection.service.ReportService;
 import com.oneaix.selection.service.report.ReportBinaryExporter;
+import com.oneaix.selection.util.ReportFileNames;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Min;
+import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +18,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.nio.charset.StandardCharsets;
 
 /** 选品报告导出（Markdown + Excel/PDF）2026-06-04 */
 @Validated
@@ -49,9 +53,9 @@ public class ReportController {
     ) {
         SelectionReport report = reportService.export(cardId, brandId, PlatformView.normalize(platform).getLabel());
         byte[] bytes = binaryExporter.exportExcel(report);
-        String fileName = report.fileName() + ".xlsx";
+        String fileName = ReportFileNames.excelFileName(report.fileName());
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition(fileName))
                 .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
                 .body(bytes);
     }
@@ -64,10 +68,17 @@ public class ReportController {
     ) {
         SelectionReport report = reportService.export(cardId, brandId, PlatformView.normalize(platform).getLabel());
         byte[] bytes = binaryExporter.exportPdf(report);
-        String fileName = report.fileName() + ".pdf";
+        String fileName = ReportFileNames.pdfFileName(report.fileName());
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition(fileName))
                 .contentType(MediaType.APPLICATION_PDF)
                 .body(bytes);
+    }
+
+    private String contentDisposition(String fileName) {
+        ContentDisposition disposition = ContentDisposition.attachment()
+                .filename(fileName, StandardCharsets.UTF_8)
+                .build();
+        return disposition.toString();
     }
 }

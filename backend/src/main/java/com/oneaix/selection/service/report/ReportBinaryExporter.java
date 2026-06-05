@@ -1,9 +1,7 @@
 package com.oneaix.selection.service.report;
 
 import com.lowagie.text.Document;
-import com.lowagie.text.Font;
-import com.lowagie.text.FontFactory;
-import com.lowagie.text.Paragraph;
+import com.lowagie.text.PageSize;
 import com.lowagie.text.pdf.PdfWriter;
 import com.oneaix.selection.dto.SelectionReport;
 import org.apache.poi.ss.usermodel.Row;
@@ -13,11 +11,18 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayOutputStream;
-import java.nio.charset.StandardCharsets;
 
 /** Excel/PDF 报告导出（迭代1）2026-06-04 */
 @Component
 public class ReportBinaryExporter {
+
+    private final ReportMarkdownPdfRenderer pdfRenderer;
+    private final ReportPdfFontResolver fontResolver;
+
+    public ReportBinaryExporter(ReportMarkdownPdfRenderer pdfRenderer, ReportPdfFontResolver fontResolver) {
+        this.pdfRenderer = pdfRenderer;
+        this.fontResolver = fontResolver;
+    }
 
     public byte[] exportExcel(SelectionReport report) {
         try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
@@ -50,36 +55,15 @@ public class ReportBinaryExporter {
 
     public byte[] exportPdf(SelectionReport report) {
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-            Document document = new Document();
-            PdfWriter.getInstance(document, out);
+            Document document = new Document(PageSize.A4, 48, 48, 56, 56);
+            PdfWriter writer = PdfWriter.getInstance(document, out);
+            writer.setPageEvent(new ReportPdfPageEvent(fontResolver));
             document.open();
-            Font titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 16);
-            Font bodyFont = FontFactory.getFont(FontFactory.HELVETICA, 11);
-            document.add(new Paragraph(report.title(), titleFont));
-            document.add(new Paragraph("生成时间：" + report.generatedAt(), bodyFont));
-            document.add(new Paragraph("平台视角：" + report.platformView(), bodyFont));
-            document.add(new Paragraph(" "));
-            if (report.brandSummary() != null) {
-                document.add(new Paragraph(report.brandSummary(), bodyFont));
-                document.add(new Paragraph(" "));
-            }
-            if (report.decisionSummary() != null) {
-                document.add(new Paragraph(
-                        "决策结论：" + report.decisionSummary().decision()
-                                + "（置信度 " + report.decisionSummary().confidence() + "%）",
-                        bodyFont
-                ));
-                document.add(new Paragraph(" "));
-            }
-            String content = report.content() == null ? "" : report.content();
-            for (String line : content.split("\n")) {
-                document.add(new Paragraph(line, bodyFont));
-            }
+            pdfRenderer.render(document, report);
             document.close();
             return out.toByteArray();
         } catch (Exception ex) {
-            return ("选品报告\n" + report.title() + "\n\n" + report.content())
-                    .getBytes(StandardCharsets.UTF_8);
+            throw new IllegalStateException("PDF 导出失败", ex);
         }
     }
 

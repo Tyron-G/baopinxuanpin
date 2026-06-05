@@ -67,7 +67,9 @@
       <main class="workspace">
         <WorkflowStepper
           :current="currentStep"
-          :best-card-id="dashboard?.bestCardId ?? 1"
+          :best-card-id="dashboard?.bestCardId"
+          :best-category-name="dashboard?.topCategory"
+          :best-score="dashboard?.bestScore"
           :workflow="workflow"
         />
         <RouterView />
