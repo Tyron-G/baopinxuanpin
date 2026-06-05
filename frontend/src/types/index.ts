@@ -611,6 +611,15 @@ export interface LifecycleInsight {
   summary: string
 }
 
+export interface CategoryMarketMetrics {
+  platform: string
+  totalSkuCount: number
+  top10SalesRatio: number
+  homogeneityScore: number
+  totalSearchVolume: number
+  summary: string
+}
+
 export interface OpportunityPoint {
   id: number
   insightCardId: number
@@ -736,4 +745,5 @@ export interface OpportunityDetail {
   supplyDemandGapModel: SupplyDemandGapModel
   priceBandDistribution: PriceBandDistribution
   lifecycleInsight: LifecycleInsight
+  categoryMarketMetrics: CategoryMarketMetrics
 }

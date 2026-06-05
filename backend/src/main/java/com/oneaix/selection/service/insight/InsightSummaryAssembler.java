@@ -89,7 +89,7 @@ public class InsightSummaryAssembler {
                 ? (rankedCards.isEmpty() ? "宠物智能用品" : rankedCards.get(0).card().getCategoryName())
                 : trendTop3.get(0).categoryName();
         MarketScaleBrief marketScaleBrief = potentialCategoryListBuilder.marketScaleFor(primaryCategory);
-        List<PainPointItem> painPointItems = painPointListBuilder.build(rankedCards);
+        List<PainPointItem> painPointItems = painPointListBuilder.build(brand.getId(), rankedCards);
 
         return new InsightSummary(
                 brand,

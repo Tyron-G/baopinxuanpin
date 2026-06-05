@@ -19,10 +19,15 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.stream.IntStream;
 
 /** 启动时补齐 10 品类洞察卡片与市场/机会样例（含分平台切片）2026-06-05 */
 @Component
 public class CategoryCatalogBootstrap implements ApplicationRunner {
+
+    private static final List<String> TREND_MONTHS = IntStream.rangeClosed(1, 12)
+            .mapToObj(month -> String.format("2025-%02d", month))
+            .toList();
 
     private static final List<String> DOMESTIC_PLATFORMS = List.of("天猫", "抖音", "小红书");
 
@@ -111,47 +116,59 @@ public class CategoryCatalogBootstrap implements ApplicationRunner {
     }
 
     private void seedTrend(String categoryName) {
-        if (hasAnyTrend(categoryName)) {
-            return;
-        }
-        insertTrendMonths(categoryName, "全平台", 1.0, 0.0);
+        ensureTwelveMonthTrends(categoryName, "全平台", 1.0, 0.0);
     }
 
     private void seedPlatformTrendIfMissing(String categoryName, String platform) {
-        if (existsTrend(categoryName, platform)) {
-            return;
-        }
-        double volumeFactor = switch (platform) {
+        ensureTwelveMonthTrends(
+                categoryName,
+                platform,
+                platformVolumeFactor(platform),
+                platformGrowthBoost(platform)
+        );
+    }
+
+    private double platformVolumeFactor(String platform) {
+        return switch (platform) {
             case "天猫" -> 0.42;
             case "抖音" -> 0.36;
             case "小红书" -> 0.30;
             default -> 0.35;
         };
-        double growthBoost = switch (platform) {
+    }
+
+    private double platformGrowthBoost(String platform) {
+        return switch (platform) {
             case "天猫" -> -1.5;
             case "抖音" -> 4.0;
             case "小红书" -> 2.0;
             default -> 0.0;
         };
-        insertTrendMonths(categoryName, platform, volumeFactor, growthBoost);
     }
 
-    private void insertTrendMonths(String categoryName, String platform, double volumeFactor, double growthBoost) {
-        List<String> months = List.of("2025-10", "2025-11", "2025-12");
+    private void ensureTwelveMonthTrends(String categoryName, String platform, double volumeFactor, double growthBoost) {
         int base = 28000 + Math.abs(categoryName.hashCode() % 12000);
-        for (int i = 0; i < months.size(); i++) {
+        for (int i = 0; i < TREND_MONTHS.size(); i++) {
+            String month = TREND_MONTHS.get(i);
+            if (existsTrendMonth(categoryName, platform, month)) {
+                continue;
+            }
             CategoryTrend row = new CategoryTrend();
             row.setCategoryName(categoryName);
             row.setPlatform(platform);
-            row.setTrendMonth(months.get(i));
-            int volume = (int) ((base + i * 1800) * volumeFactor);
+            row.setTrendMonth(month);
+            int volume = (int) ((base + i * 1200) * volumeFactor);
             row.setSearchVolume(Math.max(3000, volume));
             row.setSalesVolume(Math.max(800, volume / 4));
-            row.setGrowthRate(BigDecimal.valueOf(18 + i * 4.5 + growthBoost));
-            row.setSocialHeat(5200 + i * 600 + (int) (growthBoost * 120));
+            row.setGrowthRate(BigDecimal.valueOf(12 + i * 2.2 + growthBoost));
+            row.setSocialHeat(4200 + i * 450 + (int) (growthBoost * 120));
             row.setRisingWords(platform + "场景词,增长词");
             categoryTrendMapper.insert(row);
         }
+    }
+
+    private void insertTrendMonths(String categoryName, String platform, double volumeFactor, double growthBoost) {
+        ensureTwelveMonthTrends(categoryName, platform, volumeFactor, growthBoost);
     }
 
     private void seedCompetition(String categoryName) {
@@ -257,6 +274,14 @@ public class CategoryCatalogBootstrap implements ApplicationRunner {
     private boolean hasAnyTrend(String categoryName) {
         Long count = categoryTrendMapper.selectCount(new LambdaQueryWrapper<CategoryTrend>()
                 .eq(CategoryTrend::getCategoryName, categoryName));
+        return count != null && count > 0;
+    }
+
+    private boolean existsTrendMonth(String categoryName, String platform, String month) {
+        Long count = categoryTrendMapper.selectCount(new LambdaQueryWrapper<CategoryTrend>()
+                .eq(CategoryTrend::getCategoryName, categoryName)
+                .eq(CategoryTrend::getPlatform, platform)
+                .eq(CategoryTrend::getTrendMonth, month));
         return count != null && count > 0;
     }
 

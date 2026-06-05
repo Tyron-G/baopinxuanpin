@@ -43,6 +43,7 @@ public class OpportunityDetailAssembler {
     private final SupplyDemandGapModelBuilder supplyDemandGapModelBuilder;
     private final PriceBandDistributionBuilder priceBandDistributionBuilder;
     private final LifecycleInsightBuilder lifecycleInsightBuilder;
+    private final CategoryMarketMetricsBuilder categoryMarketMetricsBuilder;
 
     public OpportunityDetailAssembler(
             InsightCardCatalogService catalogService,
@@ -62,7 +63,8 @@ public class OpportunityDetailAssembler {
             MarketDataRepository marketDataRepository,
             SupplyDemandGapModelBuilder supplyDemandGapModelBuilder,
             PriceBandDistributionBuilder priceBandDistributionBuilder,
-            LifecycleInsightBuilder lifecycleInsightBuilder
+            LifecycleInsightBuilder lifecycleInsightBuilder,
+            CategoryMarketMetricsBuilder categoryMarketMetricsBuilder
     ) {
         this.catalogService = catalogService;
         this.viewAssembler = viewAssembler;
@@ -82,6 +84,7 @@ public class OpportunityDetailAssembler {
         this.supplyDemandGapModelBuilder = supplyDemandGapModelBuilder;
         this.priceBandDistributionBuilder = priceBandDistributionBuilder;
         this.lifecycleInsightBuilder = lifecycleInsightBuilder;
+        this.categoryMarketMetricsBuilder = categoryMarketMetricsBuilder;
     }
 
     public OpportunityDetail assemble(Long cardId, BrandSelectionContext context, String platformView) {
@@ -113,6 +116,7 @@ public class OpportunityDetailAssembler {
         var supplyGapModel = supplyDemandGapModelBuilder.build(
                 card, platformView, trends, supplyRows, competitionRows);
         var priceBands = priceBandDistributionBuilder.build(categoryName, platformView, supplyRows);
+        var categoryMetrics = categoryMarketMetricsBuilder.build(categoryName, platformView, competitionRows);
         var points = opportunityPointService.list(cardId, categoryName, platformView, lifecycleInsight);
 
         return new OpportunityDetail(
@@ -148,7 +152,8 @@ public class OpportunityDetailAssembler {
                 competitionQuadrantBuilder.build(card, relatedCompetitors),
                 supplyGapModel,
                 priceBands,
-                lifecycleInsight
+                lifecycleInsight,
+                categoryMetrics
         );
     }
 

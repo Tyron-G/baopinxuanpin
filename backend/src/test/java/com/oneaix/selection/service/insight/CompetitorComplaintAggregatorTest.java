@@ -1,6 +1,5 @@
 package com.oneaix.selection.service.insight;
 
-import com.oneaix.selection.content.CategoryPlaybookRegistry;
 import com.oneaix.selection.dto.CompetitorShop;
 import com.oneaix.selection.dto.InsightCardView;
 import com.oneaix.selection.dto.ScoreBreakdown;
@@ -18,40 +17,29 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
-/** 2026-06-05 PainPointListBuilder */
+/** 2026-06-05 CompetitorComplaintAggregator */
 @ExtendWith(MockitoExtension.class)
-class PainPointListBuilderTest {
+class CompetitorComplaintAggregatorTest {
 
     @Mock
     private CompetitorService competitorService;
 
     @Test
-    void shouldPreferComplaintTopicsOverPlaybook() {
+    void shouldAggregateComplaintFrequencyAcrossShops() {
         when(competitorService.list(1L)).thenReturn(List.of(
-                new CompetitorShop(
-                        "小佩宠物旗舰店",
-                        PlatformView.TMALL.getLabel(),
-                        "宠物智能用品",
-                        "hit", "signal", "2026-06-05", 1L, "id", "type", "launch", 3,
-                        List.of("卡粮", "噪音"), List.of()
-                )
+                shop("店A", "宠物智能用品", List.of("卡粮", "噪音")),
+                shop("店B", "宠物智能用品", List.of("卡粮", "APP 连接不稳"))
         ));
-        PainPointListBuilder builder = new PainPointListBuilder(
-                new CategoryPlaybookRegistry(),
-                new CompetitorComplaintAggregator(competitorService)
-        );
-        var items = builder.build(1L, List.of(view("宠物智能用品")));
-        assertEquals("卡粮", items.get(0).topic());
-        assertTrue(items.get(0).summary().contains("跟踪竞品"));
+        var aggregator = new CompetitorComplaintAggregator(competitorService);
+        var stats = aggregator.aggregate(1L, List.of(view("宠物智能用品")));
+        assertTrue(stats.stream().anyMatch(item -> "卡粮".equals(item.topic()) && item.frequency() == 2));
     }
 
-    @Test
-    void shouldReturnEmptyWhenNoCards() {
-        PainPointListBuilder builder = new PainPointListBuilder(
-                new CategoryPlaybookRegistry(),
-                new CompetitorComplaintAggregator(competitorService)
+    private CompetitorShop shop(String name, String category, List<String> topics) {
+        return new CompetitorShop(
+                name, PlatformView.TMALL.getLabel(), category, "hit", "signal",
+                "2026-06-05", 1L, "id", "type", "launch", 2, topics, List.of()
         );
-        assertTrue(builder.build(1L, List.of()).isEmpty());
     }
 
     private InsightCardView view(String category) {

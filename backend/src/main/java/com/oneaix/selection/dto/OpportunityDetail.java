@@ -33,6 +33,7 @@ public record OpportunityDetail(
         CompetitionQuadrantReport competitionQuadrant,
         SupplyDemandGapModel supplyDemandGapModel,
         PriceBandDistribution priceBandDistribution,
-        LifecycleInsight lifecycleInsight
+        LifecycleInsight lifecycleInsight,
+        CategoryMarketMetrics categoryMarketMetrics
 ) {
 }

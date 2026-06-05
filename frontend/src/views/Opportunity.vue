@@ -57,6 +57,8 @@
         :metric-items="opportunityMetricItems"
       />
 
+      <CategoryMarketMetricsBar :metrics="detail.categoryMarketMetrics" />
+
       <DecisionSummary :summary="detail.decisionSummary" />
 
       <EntryDecisionPanel
@@ -543,6 +545,7 @@ import NextActionsPanel from '@/components/opportunity/NextActionsPanel.vue'
 import OpportunityPoint from '@/components/opportunity/OpportunityPoint.vue'
 import OpportunityReports from '@/components/opportunity/OpportunityReports.vue'
 import OpportunityPrdAnalysis from '@/components/opportunity/OpportunityPrdAnalysis.vue'
+import CategoryMarketMetricsBar from '@/components/opportunity/CategoryMarketMetricsBar.vue'
 import { isLowerResistance, resistanceMagnitude } from '@/lib/opportunityMetrics'
 
 const OpportunityScatter = defineAsyncComponent(() => import('@/components/opportunity/OpportunityScatter.vue'))

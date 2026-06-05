@@ -12,22 +12,60 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 
-/** 痛点优先级清单：按候选赛道 Playbook 负面舆情动态生成 2026-06-05 */
+/** 痛点优先级清单：优先竞品差评聚合，Playbook 兜底 2026-06-05 */
 @Component
 public class PainPointListBuilder {
 
     private static final int MAX_ITEMS = 5;
 
     private final CategoryPlaybookRegistry playbookRegistry;
+    private final CompetitorComplaintAggregator complaintAggregator;
 
-    public PainPointListBuilder(CategoryPlaybookRegistry playbookRegistry) {
+    public PainPointListBuilder(
+            CategoryPlaybookRegistry playbookRegistry,
+            CompetitorComplaintAggregator complaintAggregator
+    ) {
         this.playbookRegistry = playbookRegistry;
+        this.complaintAggregator = complaintAggregator;
     }
 
-    public List<PainPointItem> build(List<InsightCardView> rankedCards) {
+    public List<PainPointItem> build(Long brandId, List<InsightCardView> rankedCards) {
         if (rankedCards == null || rankedCards.isEmpty()) {
             return List.of();
         }
+        List<PainPointItem> fromComplaints = buildFromComplaints(brandId, rankedCards);
+        if (!fromComplaints.isEmpty()) {
+            return fromComplaints;
+        }
+        return buildFromPlaybook(rankedCards);
+    }
+
+    private List<PainPointItem> buildFromComplaints(Long brandId, List<InsightCardView> rankedCards) {
+        List<CompetitorComplaintAggregator.ComplaintTopicStat> stats =
+                complaintAggregator.aggregate(brandId, rankedCards);
+        if (stats.isEmpty()) {
+            return List.of();
+        }
+        List<PainPointItem> items = new ArrayList<>();
+        int rank = 1;
+        for (CompetitorComplaintAggregator.ComplaintTopicStat stat : stats) {
+            if (items.size() >= MAX_ITEMS) {
+                break;
+            }
+            items.add(new PainPointItem(
+                    rank++,
+                    stat.topic(),
+                    stat.frequency(),
+                    stat.frequency() >= 2 ? "高" : "中",
+                    stat.categoryName() + " 差评主题「" + stat.topic() + "」在 "
+                            + stat.frequency() + " 个跟踪竞品中出现（"
+                            + String.join("、", stat.shopNames()) + "）。"
+            ));
+        }
+        return items;
+    }
+
+    private List<PainPointItem> buildFromPlaybook(List<InsightCardView> rankedCards) {
         List<PainPointItem> items = new ArrayList<>();
         LinkedHashSet<String> seenTopics = new LinkedHashSet<>();
         int rank = 1;
@@ -53,7 +91,7 @@ public class PainPointListBuilder {
                         Math.max(5, weight / 4),
                         weight >= 65 ? "高" : "中",
                         view.card().getCategoryName() + " 用户差评簇：" + term.name()
-                                + "，适合作为差异化切口（内置样例口径）。"
+                                + "（Playbook 兜底口径）。"
                 ));
             }
         }
