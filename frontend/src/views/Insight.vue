@@ -426,7 +426,14 @@ const focusMatched = computed(() => Boolean(focusedView.value))
 const displayCards = computed(() => {
   const weighted = cards.value
     .map((view) => ({ view, score: cardPlatformWeight(view.card.categoryName) }))
-    .sort((left, right) => right.score - left.score || right.view.scoreBreakdown.totalScore - left.view.scoreBreakdown.totalScore)
+    .sort((left, right) => {
+      if (left.view.pinned !== right.view.pinned) {
+        return left.view.pinned ? -1 : 1
+      }
+      const platformDiff = right.score - left.score
+      if (platformDiff !== 0) return platformDiff
+      return right.view.scoreBreakdown.totalScore - left.view.scoreBreakdown.totalScore
+    })
     .map((item) => item.view)
   if (!focusedView.value) {
     return weighted

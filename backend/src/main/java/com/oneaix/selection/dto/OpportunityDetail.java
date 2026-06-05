@@ -28,6 +28,8 @@ public record OpportunityDetail(
         Alibaba1688Intel alibaba1688Intel,
         List<SellingPointSuggestion> sellingPoints,
         OpportunityMarketContext marketContext,
-        List<ExternalDriverItem> externalDrivers
+        List<ExternalDriverItem> externalDrivers,
+        EntryBarrierAssessment entryBarrier,
+        CompetitionQuadrantReport competitionQuadrant
 ) {
 }

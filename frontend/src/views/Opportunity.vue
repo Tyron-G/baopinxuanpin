@@ -89,6 +89,44 @@
         :platform-playbook="detail.platformPlaybook"
       />
 
+      <section v-if="detail.entryBarrier" class="panel pad entry-barrier-panel">
+        <span class="eyebrow">进入壁垒评估（PRD）</span>
+        <h2>评论门槛 · 上榜周期 · CPC · 专利 · 供应链</h2>
+        <p class="entry-barrier-summary">{{ detail.entryBarrier.summary }}</p>
+        <div class="entry-barrier-grid">
+          <article>
+            <span>新品上榜周期</span>
+            <b>{{ detail.entryBarrier.newProductListingCycle }}</b>
+            <small>头部 SKU 进入榜单所需时间</small>
+          </article>
+          <article>
+            <span>头部评论门槛</span>
+            <b>{{ detail.entryBarrier.topCommentThreshold }}</b>
+            <small>Top20 评论数均值样例</small>
+          </article>
+          <article>
+            <span>CPC 壁垒</span>
+            <b>{{ detail.entryBarrier.cpcBarrier }}</b>
+            <small>相对类目均值</small>
+          </article>
+          <article>
+            <span>专利壁垒</span>
+            <b>{{ detail.entryBarrier.patentBarrier }}</b>
+            <small>合规与侵权风险</small>
+          </article>
+          <article>
+            <span>供应链壁垒</span>
+            <b>{{ detail.entryBarrier.supplyChainBarrier }}</b>
+            <small>MOQ 与履约风险</small>
+          </article>
+          <article>
+            <span>综合壁垒</span>
+            <b>{{ detail.entryBarrier.overallLevel }}</b>
+            <small>四项综合判断</small>
+          </article>
+        </div>
+      </section>
+
       <section v-if="detail.marketContext" class="panel pad market-context-panel">
         <span class="eyebrow">市场与投放上下文（PRD）</span>
         <h2>CPC · 物流 · 平台政策</h2>
@@ -442,6 +480,12 @@
             <CrowdScene :scenes="detail.crowdScenes" />
           </div>
         </div>
+
+        <CompetitionQuadrant
+          v-if="detail.competitionQuadrant"
+          :report="detail.competitionQuadrant"
+          class="quadrant-panel"
+        />
       </section>
 
       <section class="points-shell">
@@ -491,8 +535,10 @@ import CrowdScene from '@/components/opportunity/CrowdScene.vue'
 import NextActionsPanel from '@/components/opportunity/NextActionsPanel.vue'
 import OpportunityPoint from '@/components/opportunity/OpportunityPoint.vue'
 import OpportunityReports from '@/components/opportunity/OpportunityReports.vue'
+import { isLowerResistance, resistanceMagnitude } from '@/lib/opportunityMetrics'
 
 const OpportunityScatter = defineAsyncComponent(() => import('@/components/opportunity/OpportunityScatter.vue'))
+const CompetitionQuadrant = defineAsyncComponent(() => import('@/components/opportunity/CompetitionQuadrant.vue'))
 
 const props = defineProps<{ cardId: string }>()
 const route = useRoute()
@@ -692,12 +738,12 @@ const displayPoints = computed(() => {
       case 'timing':
         return point.opportunityScore * 10 + lifecyclePriority(point.lifecycleStage) * 20 + entryTimingPriority(point.entryTiming)
       case 'profit':
-        return point.profitElasticity * 100 + point.opportunityScore - point.competitionResistance
+        return point.profitElasticity * 100 + point.opportunityScore - resistanceMagnitude(point.competitionResistance)
       case 'scenario':
         return scenarioPriority(point.scenarioText, point.targetCrowd) * 100 + point.opportunityGravity * 2 + point.opportunityScore
       case 'balanced':
       default:
-        return point.opportunityScore * 100 + point.profitElasticity * 2 - point.competitionResistance + point.opportunityGravity
+        return point.opportunityScore * 100 + point.profitElasticity * 2 - resistanceMagnitude(point.competitionResistance) + point.opportunityGravity
     }
   }
   return points.sort((left, right) => {
@@ -714,7 +760,9 @@ const profitLeader = computed(() => {
   return [...(detail.value?.points ?? [])].sort((left, right) => right.profitElasticity - left.profitElasticity)[0]
 })
 const resistanceLeader = computed(() => {
-  return [...(detail.value?.points ?? [])].sort((left, right) => left.competitionResistance - right.competitionResistance)[0]
+  return [...(detail.value?.points ?? [])].sort((left, right) =>
+    isLowerResistance(left.competitionResistance, right.competitionResistance) ? -1 : 1
+  )[0]
 })
 const pointViewSummary = computed(() => {
   const lead = displayPoints.value[0]
@@ -972,9 +1020,37 @@ watch(() => [props.cardId, brandId.value, platformView.value], load)
   margin-bottom: 16px;
 }
 
-.market-context-summary {
+.market-context-summary,
+.entry-barrier-summary {
   margin: 8px 0 14px;
   color: var(--muted);
+}
+
+.entry-barrier-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.entry-barrier-grid article {
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(248, 251, 255, 0.9);
+}
+
+.entry-barrier-grid span,
+.entry-barrier-grid small {
+  display: block;
+  color: var(--muted);
+}
+
+.entry-barrier-grid b {
+  display: block;
+  margin: 6px 0;
+}
+
+.quadrant-panel {
+  margin-top: 16px;
 }
 
 .market-context-grid {

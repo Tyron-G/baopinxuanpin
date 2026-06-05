@@ -9,6 +9,7 @@ declare module 'vue' {
   export interface GlobalComponents {
     ActionSummaryPanel: typeof import('./src/components/common/ActionSummaryPanel.vue')['default']
     CompetitionMap: typeof import('./src/components/insight/CompetitionMap.vue')['default']
+    CompetitionQuadrant: typeof import('./src/components/opportunity/CompetitionQuadrant.vue')['default']
     CompetitorSummaryPanel: typeof import('./src/components/common/CompetitorSummaryPanel.vue')['default']
     CompetitorTimelinePanel: typeof import('./src/components/common/CompetitorTimelinePanel.vue')['default']
     CrowdScene: typeof import('./src/components/opportunity/CrowdScene.vue')['default']

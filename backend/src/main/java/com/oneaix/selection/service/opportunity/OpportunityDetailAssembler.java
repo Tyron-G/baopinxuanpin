@@ -33,6 +33,8 @@ public class OpportunityDetailAssembler {
     private final PlatformPlaybookBuilder platformPlaybookBuilder;
     private final OpportunityIntelBuilder opportunityIntelBuilder;
     private final OpportunityExternalDriversBuilder externalDriversBuilder;
+    private final EntryBarrierAssessmentBuilder entryBarrierAssessmentBuilder;
+    private final CompetitionQuadrantBuilder competitionQuadrantBuilder;
 
     public OpportunityDetailAssembler(
             InsightCardCatalogService catalogService,
@@ -46,7 +48,9 @@ public class OpportunityDetailAssembler {
             CompetitorSummaryBuilder competitorSummaryBuilder,
             PlatformPlaybookBuilder platformPlaybookBuilder,
             OpportunityIntelBuilder opportunityIntelBuilder,
-            OpportunityExternalDriversBuilder externalDriversBuilder
+            OpportunityExternalDriversBuilder externalDriversBuilder,
+            EntryBarrierAssessmentBuilder entryBarrierAssessmentBuilder,
+            CompetitionQuadrantBuilder competitionQuadrantBuilder
     ) {
         this.catalogService = catalogService;
         this.viewAssembler = viewAssembler;
@@ -60,6 +64,8 @@ public class OpportunityDetailAssembler {
         this.platformPlaybookBuilder = platformPlaybookBuilder;
         this.opportunityIntelBuilder = opportunityIntelBuilder;
         this.externalDriversBuilder = externalDriversBuilder;
+        this.entryBarrierAssessmentBuilder = entryBarrierAssessmentBuilder;
+        this.competitionQuadrantBuilder = competitionQuadrantBuilder;
     }
 
     public OpportunityDetail assemble(Long cardId, BrandSelectionContext context, String platformView) {
@@ -75,6 +81,10 @@ public class OpportunityDetailAssembler {
                 platformView
         );
         var differentiationAdvice = differentiationAdviceBuilder.build(playbook, brand, relatedCompetitors, platformView);
+        var competitionReport = playbook.buildCompetitionReport(card, platform);
+        var supplyChainFeasibility = buildSupplyChainFeasibility(playbook, brand);
+        var patentIntel = opportunityIntelBuilder.buildPatent(card, playbook);
+        var marketContext = opportunityIntelBuilder.buildMarketContext(card);
 
         return new OpportunityDetail(
                 card,
@@ -83,9 +93,9 @@ public class OpportunityDetailAssembler {
                 cardView.scoreBreakdown(),
                 constraintMatchBuilder.build(brand, card, cardView),
                 cardView.brandFitDetail(),
-                playbook.buildCompetitionReport(card, platform),
+                competitionReport,
                 playbook.buildProfitAnalysis(platform),
-                buildSupplyChainFeasibility(playbook, brand),
+                supplyChainFeasibility,
                 platformPlaybookBuilder.build(brand, card, relatedCompetitors),
                 relatedCompetitors,
                 competitorSummaryBuilder.build(card, relatedCompetitors),
@@ -94,11 +104,19 @@ public class OpportunityDetailAssembler {
                 opportunityPointService.list(cardId, card.getCategoryName(), platformView),
                 playbook.sentimentTerms(),
                 playbook.crowdScenes(),
-                opportunityIntelBuilder.buildPatent(card, playbook),
+                patentIntel,
                 opportunityIntelBuilder.build1688(card, playbook),
                 opportunityIntelBuilder.buildSellingPoints(card),
-                opportunityIntelBuilder.buildMarketContext(card),
-                externalDriversBuilder.build(card)
+                marketContext,
+                externalDriversBuilder.build(card),
+                entryBarrierAssessmentBuilder.build(
+                        card,
+                        competitionReport,
+                        marketContext,
+                        patentIntel,
+                        supplyChainFeasibility
+                ),
+                competitionQuadrantBuilder.build(card, relatedCompetitors)
         );
     }
 

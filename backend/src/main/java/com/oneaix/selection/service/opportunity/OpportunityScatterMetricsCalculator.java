@@ -15,7 +15,7 @@ import java.util.List;
 /**
  * PRD 散点三轴公式（基于内置样例市场数据动态计算，非第三方实时源）2026-06-05
  * 机会引力 = 搜索增速×20% + 内容声量增速×80%
- * 竞争阻力 = 供给饱和度×60% + 头部垄断度×40%
+ * 竞争阻力 = -(供给饱和度×60% + 头部垄断度×40%)
  * 利润弹性 = 100 - 同质化评分
  */
 @Component
@@ -34,16 +34,14 @@ public class OpportunityScatterMetricsCalculator {
         SupplyDemand supply = pickSupply(categoryName, platform, supplyDemand);
 
         double searchGrowth = latestTrend != null ? latestTrend.getGrowthRate().doubleValue() : 15.0;
-        double contentGrowth = latestTrend != null
-                ? Math.min(80, latestTrend.getSocialHeat() / 150.0)
-                : searchGrowth;
+        double contentGrowth = resolveContentGrowth(categoryName, platform, trends, latestTrend, searchGrowth);
         double gravity = searchGrowth * 0.2 + contentGrowth * 0.8;
 
         double monopoly = comp != null ? comp.getCr5().doubleValue() : 45.0;
         double supplySaturation = supply != null
                 ? Math.min(100, supply.getSupplyCount() * 100.0 / Math.max(1, supply.getSearchVolume()))
                 : 40.0;
-        double resistance = supplySaturation * 0.6 + monopoly * 0.4;
+        double resistance = -(supplySaturation * 0.6 + monopoly * 0.4);
 
         double homogeneity = comp != null ? comp.getHomogeneityScore().doubleValue() : 50.0;
         double elasticity = Math.max(5, 100 - homogeneity);
@@ -51,6 +49,28 @@ public class OpportunityScatterMetricsCalculator {
         point.setOpportunityGravity(scale(gravity));
         point.setCompetitionResistance(scale(resistance));
         point.setProfitElasticity(scale(elasticity));
+    }
+
+    private double resolveContentGrowth(
+            String categoryName,
+            String platform,
+            List<CategoryTrend> trends,
+            CategoryTrend latestTrend,
+            double searchGrowthFallback
+    ) {
+        if (latestTrend == null) {
+            return searchGrowthFallback;
+        }
+        CategoryTrend previous = PlatformMarketFilter.byPlatform(trends, platform, CategoryTrend::getPlatform).stream()
+                .filter(row -> categoryName.equals(row.getCategoryName()))
+                .filter(row -> row.getTrendMonth().compareTo(latestTrend.getTrendMonth()) < 0)
+                .max(Comparator.comparing(CategoryTrend::getTrendMonth))
+                .orElse(null);
+        if (previous != null && previous.getSocialHeat() != null && previous.getSocialHeat() > 0) {
+            double rate = (latestTrend.getSocialHeat() - previous.getSocialHeat()) * 100.0 / previous.getSocialHeat();
+            return Math.max(-20, Math.min(80, rate));
+        }
+        return Math.min(80, latestTrend.getSocialHeat() / 150.0);
     }
 
     private CategoryTrend latestTrend(String categoryName, String platform, List<CategoryTrend> trends) {

@@ -1,11 +1,11 @@
 package com.oneaix.selection.service.insight;
 
-import com.oneaix.selection.content.InsightNarrativeContent;
 import com.oneaix.selection.dto.CategoryBrief;
 import com.oneaix.selection.dto.InsightCardView;
 import com.oneaix.selection.dto.InsightSummary;
 import com.oneaix.selection.dto.InsightSummaryBuildRequest;
 import com.oneaix.selection.dto.MarketScaleBrief;
+import com.oneaix.selection.dto.PainPointItem;
 import com.oneaix.selection.dto.PotentialCategoryItem;
 import com.oneaix.selection.entity.BrandInfo;
 import com.oneaix.selection.entity.CompetitionData;
@@ -25,15 +25,18 @@ public class InsightSummaryAssembler {
     private final InsightCardQueryService cardQueryService;
     private final CategoryBriefBuilder categoryBriefBuilder;
     private final PotentialCategoryListBuilder potentialCategoryListBuilder;
+    private final PainPointListBuilder painPointListBuilder;
 
     public InsightSummaryAssembler(
             InsightCardQueryService cardQueryService,
             CategoryBriefBuilder categoryBriefBuilder,
-            PotentialCategoryListBuilder potentialCategoryListBuilder
+            PotentialCategoryListBuilder potentialCategoryListBuilder,
+            PainPointListBuilder painPointListBuilder
     ) {
         this.cardQueryService = cardQueryService;
         this.categoryBriefBuilder = categoryBriefBuilder;
         this.potentialCategoryListBuilder = potentialCategoryListBuilder;
+        this.painPointListBuilder = painPointListBuilder;
     }
 
     public InsightSummary build(InsightSummaryBuildRequest request) {
@@ -86,6 +89,7 @@ public class InsightSummaryAssembler {
                 ? (rankedCards.isEmpty() ? "宠物智能用品" : rankedCards.get(0).card().getCategoryName())
                 : trendTop3.get(0).categoryName();
         MarketScaleBrief marketScaleBrief = potentialCategoryListBuilder.marketScaleFor(primaryCategory);
+        List<PainPointItem> painPointItems = painPointListBuilder.build(rankedCards);
 
         return new InsightSummary(
                 brand,
@@ -96,8 +100,8 @@ public class InsightSummaryAssembler {
                 supplyConclusion,
                 supplyTop3,
                 trendJudgment,
-                InsightNarrativeContent.summaryPainPointItems(),
-                InsightNarrativeContent.summaryPainPoints(),
+                painPointItems,
+                painPointListBuilder.topics(painPointItems),
                 crowdProfile,
                 rankedCards.stream().skip(1).limit(2).toList(),
                 buildBlockingReasons(brand, rankedCards, filteredCategories),

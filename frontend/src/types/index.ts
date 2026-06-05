@@ -555,6 +555,30 @@ export interface OpportunityMarketContext {
   summary: string
 }
 
+export interface EntryBarrierAssessment {
+  newProductListingCycle: string
+  topCommentThreshold: string
+  cpcBarrier: string
+  patentBarrier: string
+  supplyChainBarrier: string
+  overallLevel: string
+  summary: string
+}
+
+export interface PriceFunctionPoint {
+  label: string
+  priceIndex: number
+  functionIndex: number
+  quadrant: string
+  role: string
+}
+
+export interface CompetitionQuadrantReport {
+  points: PriceFunctionPoint[]
+  blankZone: string
+  summary: string
+}
+
 export interface OpportunityPoint {
   id: number
   insightCardId: number
@@ -675,4 +699,6 @@ export interface OpportunityDetail {
   sellingPoints: SellingPointSuggestion[]
   marketContext: OpportunityMarketContext
   externalDrivers?: ExternalDriverItem[]
+  entryBarrier: EntryBarrierAssessment
+  competitionQuadrant: CompetitionQuadrantReport
 }

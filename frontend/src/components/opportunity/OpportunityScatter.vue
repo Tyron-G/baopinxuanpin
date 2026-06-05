@@ -58,6 +58,7 @@
 <script setup lang="ts">
 import { echarts } from '@/lib/echarts'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { isLowerResistance, resistanceMagnitude } from '@/lib/opportunityMetrics'
 import type { OpportunityPoint } from '@/types'
 
 const props = defineProps<{ rows: OpportunityPoint[] }>()
@@ -67,7 +68,11 @@ let resizeObserver: ResizeObserver | null = null
 
 const leadPoint = computed(() => props.rows[0])
 const highestProfitPoint = computed(() => [...props.rows].sort((left, right) => right.profitElasticity - left.profitElasticity)[0])
-const lowestResistancePoint = computed(() => [...props.rows].sort((left, right) => left.competitionResistance - right.competitionResistance)[0])
+const lowestResistancePoint = computed(() =>
+  [...props.rows].sort((left, right) =>
+    isLowerResistance(left.competitionResistance, right.competitionResistance) ? -1 : 1
+  )[0]
+)
 const priorityPointCount = computed(() => props.rows.filter((item) => item.opportunityScore >= 80).length)
 const priorityRows = computed(() => props.rows.filter((item) => item.opportunityScore >= 80))
 const normalRows = computed(() => props.rows.filter((item) => item.opportunityScore < 80))
@@ -90,12 +95,12 @@ function labelPosition(gravity: number, resistance: number) {
 function toSeriesData(rows: OpportunityPoint[]) {
   return rows.map((row) => [
     row.opportunityGravity,
-    row.competitionResistance,
+    resistanceMagnitude(row.competitionResistance),
     row.profitElasticity,
     row.opportunityLevel,
     row.scenarioText,
     row.targetCrowd,
-    labelPosition(row.opportunityGravity, row.competitionResistance)
+    labelPosition(row.opportunityGravity, resistanceMagnitude(row.competitionResistance))
   ])
 }
 
@@ -112,7 +117,8 @@ function render() {
         const [gravity, resistance, elasticity, , scenario, crowd] = params.data
         const row = props.rows.find((item) => item.scenarioText === scenario)
         const score = row?.opportunityScore ?? '-'
-        return `${crowd}<br/>${scenario}<br/>机会评分：${score}<br/>机会引力：${gravity} / 竞争阻力：${resistance}<br/>利润弹性：${elasticity}`
+        const signed = row?.competitionResistance ?? resistance
+        return `${crowd}<br/>${scenario}<br/>机会评分：${score}<br/>机会引力：${gravity} / 竞争阻力：${signed}（展示 ${resistance}）<br/>利润弹性：${elasticity}`
       }
     },
     grid: { left: 84, right: 46, top: 48, bottom: 82, containLabel: false },
