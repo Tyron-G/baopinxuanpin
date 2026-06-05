@@ -1,0 +1,74 @@
+package com.oneaix.selection.service.catalog;
+
+import com.oneaix.selection.dto.InsightCardView;
+import com.oneaix.selection.entity.BrandInfo;
+import com.oneaix.selection.entity.InsightCard;
+import com.oneaix.selection.service.BrandService;
+import com.oneaix.selection.service.constraint.BrandConstraintEvaluator;
+import com.oneaix.selection.service.insight.InsightViewAssembler;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+/** 品牌约束下的洞察卡片视图查询 2026-06-04 */
+@Service
+public class InsightCardQueryService {
+
+    private final BrandService brandService;
+    private final InsightCardCatalogService catalogService;
+    private final BrandConstraintEvaluator constraintEvaluator;
+    private final InsightViewAssembler viewAssembler;
+
+    public InsightCardQueryService(
+            BrandService brandService,
+            InsightCardCatalogService catalogService,
+            BrandConstraintEvaluator constraintEvaluator,
+            InsightViewAssembler viewAssembler
+    ) {
+        this.brandService = brandService;
+        this.catalogService = catalogService;
+        this.constraintEvaluator = constraintEvaluator;
+        this.viewAssembler = viewAssembler;
+    }
+
+    public BrandInfo requireBrand(Long brandId) {
+        return brandService.requireById(brandId);
+    }
+
+    public List<InsightCard> loadCatalog() {
+        return catalogService.loadCatalog();
+    }
+
+    public List<InsightCardView> rankedViews(Long brandId) {
+        BrandInfo brand = requireBrand(brandId);
+        return rankedViews(brand, loadCatalog());
+    }
+
+    public List<InsightCardView> rankedViews(BrandInfo brand, List<InsightCard> catalog) {
+        List<InsightCard> ranked = constraintEvaluator.filterAndRankCards(brand, catalog);
+        return viewAssembler.toViews(brand, ranked);
+    }
+
+    public Set<String> visibleCategories(BrandInfo brand, List<InsightCard> catalog) {
+        List<String> allNames = catalog.stream()
+                .map(InsightCard::getCategoryName)
+                .distinct()
+                .toList();
+        return constraintEvaluator.resolveVisibleCategories(brand, allNames);
+    }
+
+    public Set<String> visibleCategories(Long brandId) {
+        BrandInfo brand = requireBrand(brandId);
+        return visibleCategories(brand, loadCatalog());
+    }
+
+    public List<String> filteredCategoryNames(List<InsightCard> catalog, Set<String> visible) {
+        return catalog.stream()
+                .map(InsightCard::getCategoryName)
+                .filter(category -> !visible.contains(category))
+                .distinct()
+                .collect(Collectors.toList());
+    }
+}

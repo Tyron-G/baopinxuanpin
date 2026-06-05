@@ -1,0 +1,36 @@
+# Dependencies & build
+node_modules/
+dist/
+target/
+
+# Logs
+logs/
+*.log
+
+# Frontend / backend artifacts
+frontend/node_modules/
+frontend/dist/
+frontend/logs/
+backend/target/
+backend/logs/
+
+# IDE & OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# Env & secrets
+.env
+.env.*
+!.env.example
+
+# Local agent / session (not product source)
+.claude/
+.planning/
+
+# Playwright / test artifacts
+frontend/test-results/
+frontend/playwright-report/
+frontend/blob-report/
