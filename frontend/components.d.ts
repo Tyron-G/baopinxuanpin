@@ -49,6 +49,7 @@ declare module 'vue' {
     ElTag: typeof import('element-plus/es')['ElTag']
     EntryDecisionPanel: typeof import('./src/components/common/EntryDecisionPanel.vue')['default']
     InsightCard: typeof import('./src/components/insight/InsightCard.vue')['default']
+    InsightCardTable: typeof import('./src/components/insight/InsightCardTable.vue')['default']
     InsightConclusion: typeof import('./src/components/insight/InsightConclusion.vue')['default']
     MarketTrend: typeof import('./src/components/insight/MarketTrend.vue')['default']
     NextActionsPanel: typeof import('./src/components/opportunity/NextActionsPanel.vue')['default']

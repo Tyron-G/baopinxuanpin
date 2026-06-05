@@ -85,10 +85,22 @@
       </div>
     </section>
 
+    <section class="panel pad strength-filter-panel">
+      <div class="strength-filter-head">
+        <div>
+          <span class="eyebrow">信号分级（迭代1 P1）</span>
+          <b>按强度筛选今日信号</b>
+          <p>强 / 中 / 弱 与后端信号分级一致，减少噪音、聚焦今日优先判断项。</p>
+        </div>
+        <small>当前显示 {{ filteredSignals.length }} / {{ signals.length }} 条</small>
+      </div>
+      <el-segmented v-model="selectedStrength" :options="strengthFilterOptions" />
+    </section>
+
     <div class="metric-strip">
       <div class="metric">
         <span>活跃信号</span>
-        <b>{{ signals.length }}</b>
+        <b>{{ filteredSignals.length }}</b>
       </div>
       <div class="metric">
         <span>强信号</span>
@@ -108,8 +120,14 @@
       <el-skeleton :rows="4" animated />
     </div>
 
+    <el-empty
+      v-else-if="!filteredSignals.length"
+      class="panel pad"
+      description="当前强度筛选下暂无信号，可切换「全部」或其它等级查看。"
+    />
+
     <div v-else class="signal-list">
-      <article v-for="item in signals" :key="item.id" class="signal-card panel pad">
+      <article v-for="item in filteredSignals" :key="item.id" class="signal-card panel pad">
         <header>
           <div class="signal-head-main">
             <div>
@@ -268,13 +286,21 @@ const brandId = computed(() => {
   return getBrandId()
 })
 
+const strengthFilterOptions = ['全部', '强', '中', '弱']
+const selectedStrength = ref('全部')
+
+const filteredSignals = computed(() => {
+  if (selectedStrength.value === '全部') return signals.value
+  return signals.value.filter((item) => item.strength === selectedStrength.value)
+})
+
 const strongCount = computed(() => signals.value.filter((item) => item.strength === '强').length)
-const latestTime = computed(() => signals.value[0]?.discoveredAt ?? '-')
-const leadSignal = computed(() => signals.value[0])
-const activePlatforms = computed(() => [...new Set(signals.value.map((item) => item.platform))])
+const latestTime = computed(() => filteredSignals.value[0]?.discoveredAt ?? signals.value[0]?.discoveredAt ?? '-')
+const leadSignal = computed(() => filteredSignals.value[0] ?? null)
+const activePlatforms = computed(() => [...new Set(filteredSignals.value.map((item) => item.platform))])
 const activePlatformCount = computed(() => activePlatforms.value.length)
 const activePlatformText = computed(() => activePlatforms.value.join(' / ') || '当前暂无平台数据')
-const trackableCount = computed(() => signals.value.filter((item) => Boolean(item.cardId)).length)
+const trackableCount = computed(() => filteredSignals.value.filter((item) => Boolean(item.cardId)).length)
 const leadReasonTitle = computed(() => leadSignal.value?.reasons[0]?.title ?? '等待更多证据')
 const leadRiskTitle = computed(() => leadSignal.value?.risks[0]?.title ?? '当前暂无显性风险')
 
@@ -442,6 +468,37 @@ watch(selectedPlatform, async (platform) => {
 </script>
 
 <style scoped>
+.strength-filter-panel {
+  margin-bottom: 14px;
+}
+
+.strength-filter-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.strength-filter-head b {
+  display: block;
+  margin-top: 4px;
+  font-size: 15px;
+}
+
+.strength-filter-head p {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.strength-filter-head small {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--muted-soft, #94a3b8);
+}
+
 .signal-list {
   display: grid;
   gap: 14px;

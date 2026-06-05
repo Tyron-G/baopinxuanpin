@@ -329,9 +329,19 @@
                 <span>当前推荐主区</span>
                 <b>{{ primaryCard?.categoryName ?? '候选赛道' }}</b>
               </div>
-              <small>主区只保留当前更值得继续进入机会分析的候选，减少“所有卡片同等重要”的阅读噪音。</small>
+              <div class="candidate-view-toggle">
+                <span>展示方式</span>
+                <el-segmented v-model="cardViewMode" :options="cardViewOptions" size="small" />
+              </div>
+              <small>主区只保留当前更值得继续进入机会分析的候选；表格视图对齐 PRD 洞察卡片列。</small>
             </div>
-            <div class="card-grid">
+            <InsightCardTable
+              v-if="cardViewMode === '表格'"
+              :rows="displayCards"
+              :focused-card-id="focusedView?.card.id"
+              @select="openCard"
+            />
+            <div v-else class="card-grid">
               <InsightCard
                 v-for="view in displayCards"
                 :key="view.card.id"
@@ -373,6 +383,7 @@ import type {
 import PageHero from '@/components/common/PageHero.vue'
 import WorkflowSummary from '@/components/common/WorkflowSummary.vue'
 import InsightCard from '@/components/insight/InsightCard.vue'
+import InsightCardTable from '@/components/insight/InsightCardTable.vue'
 import WatchlistPanel from '@/components/common/WatchlistPanel.vue'
 import ProductMetricsPanel from '@/components/common/ProductMetricsPanel.vue'
 import InsightConclusion from '@/components/insight/InsightConclusion.vue'
@@ -384,6 +395,8 @@ const SupplyDemand = defineAsyncComponent(() => import('@/components/insight/Sup
 
 const route = useRoute()
 const router = useRouter()
+const cardViewOptions = ['卡片', '表格']
+const cardViewMode = ref<'卡片' | '表格'>('卡片')
 const activeTab = ref('trend')
 const trendChartRef = ref<{ resize: () => void }>()
 const competitionChartRef = ref<{ resize: () => void }>()
@@ -1143,6 +1156,17 @@ function cardPlatformHint(categoryName: string) {
   color: var(--ink-strong);
   font-size: 18px;
   line-height: 1.5;
+}
+
+.candidate-view-toggle {
+  display: grid;
+  gap: 6px;
+  justify-items: end;
+}
+
+.candidate-view-toggle span {
+  color: var(--muted);
+  font-size: 12px;
 }
 
 .candidate-main-head small {
