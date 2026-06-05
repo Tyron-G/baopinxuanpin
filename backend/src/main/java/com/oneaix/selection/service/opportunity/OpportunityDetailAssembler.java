@@ -12,10 +12,14 @@ import com.oneaix.selection.enums.DecisionType;
 import com.oneaix.selection.enums.PlatformView;
 import com.oneaix.selection.service.CompetitorService;
 import com.oneaix.selection.service.NextActionPlanner;
+import com.oneaix.selection.repository.market.MarketDataRepository;
 import com.oneaix.selection.service.catalog.InsightCardCatalogService;
 import com.oneaix.selection.service.insight.InsightViewAssembler;
 import com.oneaix.selection.util.TextFormats;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Set;
 
 /** 机会详情页组装 2026-06-04 */
 @Component
@@ -35,6 +39,10 @@ public class OpportunityDetailAssembler {
     private final OpportunityExternalDriversBuilder externalDriversBuilder;
     private final EntryBarrierAssessmentBuilder entryBarrierAssessmentBuilder;
     private final CompetitionQuadrantBuilder competitionQuadrantBuilder;
+    private final MarketDataRepository marketDataRepository;
+    private final SupplyDemandGapModelBuilder supplyDemandGapModelBuilder;
+    private final PriceBandDistributionBuilder priceBandDistributionBuilder;
+    private final LifecycleInsightBuilder lifecycleInsightBuilder;
 
     public OpportunityDetailAssembler(
             InsightCardCatalogService catalogService,
@@ -50,7 +58,11 @@ public class OpportunityDetailAssembler {
             OpportunityIntelBuilder opportunityIntelBuilder,
             OpportunityExternalDriversBuilder externalDriversBuilder,
             EntryBarrierAssessmentBuilder entryBarrierAssessmentBuilder,
-            CompetitionQuadrantBuilder competitionQuadrantBuilder
+            CompetitionQuadrantBuilder competitionQuadrantBuilder,
+            MarketDataRepository marketDataRepository,
+            SupplyDemandGapModelBuilder supplyDemandGapModelBuilder,
+            PriceBandDistributionBuilder priceBandDistributionBuilder,
+            LifecycleInsightBuilder lifecycleInsightBuilder
     ) {
         this.catalogService = catalogService;
         this.viewAssembler = viewAssembler;
@@ -66,6 +78,10 @@ public class OpportunityDetailAssembler {
         this.externalDriversBuilder = externalDriversBuilder;
         this.entryBarrierAssessmentBuilder = entryBarrierAssessmentBuilder;
         this.competitionQuadrantBuilder = competitionQuadrantBuilder;
+        this.marketDataRepository = marketDataRepository;
+        this.supplyDemandGapModelBuilder = supplyDemandGapModelBuilder;
+        this.priceBandDistributionBuilder = priceBandDistributionBuilder;
+        this.lifecycleInsightBuilder = lifecycleInsightBuilder;
     }
 
     public OpportunityDetail assemble(Long cardId, BrandSelectionContext context, String platformView) {
@@ -85,6 +101,19 @@ public class OpportunityDetailAssembler {
         var supplyChainFeasibility = buildSupplyChainFeasibility(playbook, brand);
         var patentIntel = opportunityIntelBuilder.buildPatent(card, playbook);
         var marketContext = opportunityIntelBuilder.buildMarketContext(card);
+        String categoryName = card.getCategoryName();
+        Set<String> categories = Set.of(categoryName);
+        List<com.oneaix.selection.entity.CategoryTrend> trends =
+                marketDataRepository.findTrendsByCategories(categories);
+        List<com.oneaix.selection.entity.SupplyDemand> supplyRows =
+                marketDataRepository.findSupplyDemandByCategories(categories);
+        List<com.oneaix.selection.entity.CompetitionData> competitionRows =
+                marketDataRepository.findCompetitionByCategories(categories);
+        var lifecycleInsight = lifecycleInsightBuilder.build(categoryName, platformView, trends);
+        var supplyGapModel = supplyDemandGapModelBuilder.build(
+                card, platformView, trends, supplyRows, competitionRows);
+        var priceBands = priceBandDistributionBuilder.build(categoryName, platformView, supplyRows);
+        var points = opportunityPointService.list(cardId, categoryName, platformView, lifecycleInsight);
 
         return new OpportunityDetail(
                 card,
@@ -101,7 +130,7 @@ public class OpportunityDetailAssembler {
                 competitorSummaryBuilder.build(card, relatedCompetitors),
                 differentiationAdvice,
                 nextActionPlanner.build(cardId, card, brand, platformView),
-                opportunityPointService.list(cardId, card.getCategoryName(), platformView),
+                points,
                 playbook.sentimentTerms(),
                 playbook.crowdScenes(),
                 patentIntel,
@@ -116,7 +145,10 @@ public class OpportunityDetailAssembler {
                         patentIntel,
                         supplyChainFeasibility
                 ),
-                competitionQuadrantBuilder.build(card, relatedCompetitors)
+                competitionQuadrantBuilder.build(card, relatedCompetitors),
+                supplyGapModel,
+                priceBands,
+                lifecycleInsight
         );
     }
 

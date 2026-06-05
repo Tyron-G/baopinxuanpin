@@ -579,6 +579,38 @@ export interface CompetitionQuadrantReport {
   summary: string
 }
 
+export interface SupplyDemandGapModel {
+  demandHeat: number
+  supplyAdequacy: number
+  satisfactionGap: number
+  gapIndex: number
+  priceVacuumBand: string
+  summary: string
+}
+
+export interface PriceBandItem {
+  priceRange: string
+  skuCount: number
+  salesSharePercent: number
+  gapHint: string
+}
+
+export interface PriceBandDistribution {
+  platform: string
+  bands: PriceBandItem[]
+  bestVacuumBand: string
+  summary: string
+}
+
+export interface LifecycleInsight {
+  lifecycleStage: string
+  growthAccelerating: boolean
+  secondDerivativeLabel: string
+  latestGrowthRate: number
+  growthAcceleration: number
+  summary: string
+}
+
 export interface OpportunityPoint {
   id: number
   insightCardId: number
@@ -701,4 +733,7 @@ export interface OpportunityDetail {
   externalDrivers?: ExternalDriverItem[]
   entryBarrier: EntryBarrierAssessment
   competitionQuadrant: CompetitionQuadrantReport
+  supplyDemandGapModel: SupplyDemandGapModel
+  priceBandDistribution: PriceBandDistribution
+  lifecycleInsight: LifecycleInsight
 }

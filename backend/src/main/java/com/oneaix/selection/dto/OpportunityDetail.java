@@ -30,6 +30,9 @@ public record OpportunityDetail(
         OpportunityMarketContext marketContext,
         List<ExternalDriverItem> externalDrivers,
         EntryBarrierAssessment entryBarrier,
-        CompetitionQuadrantReport competitionQuadrant
+        CompetitionQuadrantReport competitionQuadrant,
+        SupplyDemandGapModel supplyDemandGapModel,
+        PriceBandDistribution priceBandDistribution,
+        LifecycleInsight lifecycleInsight
 ) {
 }

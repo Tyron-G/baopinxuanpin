@@ -106,7 +106,7 @@ function render() {
     tooltip: {
       formatter: (params: any) => {
         const row = filteredRows.value[params.dataIndex]
-        return `${row.categoryName}<br/>搜索量：${row.totalSearchVolume}<br/>CR3：${row.cr3}% · CR5：${row.cr5}%<br/>${row.conclusion}`
+        return `${row.categoryName}<br/>搜索量：${row.totalSearchVolume}<br/>SKU：${row.totalSkuCount}<br/>Top10销量占比：${row.top10SalesRatio}%<br/>CR3：${row.cr3}% · CR5：${row.cr5}%<br/>${row.conclusion}`
       }
     },
     grid: { left: 68, right: 38, top: 58, bottom: 56, containLabel: true },

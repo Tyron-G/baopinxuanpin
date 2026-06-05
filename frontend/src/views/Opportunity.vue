@@ -150,6 +150,13 @@
         </div>
       </section>
 
+      <OpportunityPrdAnalysis
+        v-if="detail.supplyDemandGapModel"
+        :gap-model="detail.supplyDemandGapModel"
+        :price-bands="detail.priceBandDistribution"
+        :lifecycle="detail.lifecycleInsight"
+      />
+
       <section v-if="detail.externalDrivers?.length" class="panel pad external-drivers-panel">
         <span class="eyebrow">外部驱动因素（PRD）</span>
         <h2>政策 · 人口 · 技术 · 季节判断</h2>
@@ -535,6 +542,7 @@ import CrowdScene from '@/components/opportunity/CrowdScene.vue'
 import NextActionsPanel from '@/components/opportunity/NextActionsPanel.vue'
 import OpportunityPoint from '@/components/opportunity/OpportunityPoint.vue'
 import OpportunityReports from '@/components/opportunity/OpportunityReports.vue'
+import OpportunityPrdAnalysis from '@/components/opportunity/OpportunityPrdAnalysis.vue'
 import { isLowerResistance, resistanceMagnitude } from '@/lib/opportunityMetrics'
 
 const OpportunityScatter = defineAsyncComponent(() => import('@/components/opportunity/OpportunityScatter.vue'))

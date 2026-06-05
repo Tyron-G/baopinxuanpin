@@ -51,6 +51,7 @@ declare module 'vue' {
     MarketTrend: typeof import('./src/components/insight/MarketTrend.vue')['default']
     NextActionsPanel: typeof import('./src/components/opportunity/NextActionsPanel.vue')['default']
     OpportunityPoint: typeof import('./src/components/opportunity/OpportunityPoint.vue')['default']
+    OpportunityPrdAnalysis: typeof import('./src/components/opportunity/OpportunityPrdAnalysis.vue')['default']
     OpportunityReports: typeof import('./src/components/opportunity/OpportunityReports.vue')['default']
     OpportunityScatter: typeof import('./src/components/opportunity/OpportunityScatter.vue')['default']
     PageHero: typeof import('./src/components/common/PageHero.vue')['default']

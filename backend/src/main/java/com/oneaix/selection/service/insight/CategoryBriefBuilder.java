@@ -246,7 +246,15 @@ public class CategoryBriefBuilder {
 
         if (!PlatformView.ALL.getLabel().equals(activePlatform)) {
 
-            return activePlatform + " 近6月峰值增速见当前 Tab 明细";
+            return trends.stream()
+
+                    .filter(row -> categoryName.equals(row.getCategoryName()) && activePlatform.equals(row.getPlatform()))
+
+                    .max(Comparator.comparing(CategoryTrend::getTrendMonth))
+
+                    .map(row -> activePlatform + " 月增速 " + formatPercent(row.getGrowthRate()))
+
+                    .orElse(activePlatform + " 暂无分平台增速样例");
 
         }
 
