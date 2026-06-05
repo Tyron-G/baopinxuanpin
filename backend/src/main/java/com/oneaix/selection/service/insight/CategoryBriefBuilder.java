@@ -63,6 +63,8 @@ public class CategoryBriefBuilder {
 
     public List<CategoryBrief> trendTop3(List<CategoryTrend> trends, String platform) {
 
+        String platformLabel = platform == null || platform.isBlank() ? PlatformView.ALL.getLabel() : platform;
+
         List<CategoryTrend> source = PlatformMarketFilter.byPlatform(trends, platform, CategoryTrend::getPlatform);
 
         Map<String, CategoryTrend> latestByCategory = new LinkedHashMap<>();
@@ -77,13 +79,22 @@ public class CategoryBriefBuilder {
 
         return latestByCategory.values().stream()
 
-                .sorted(Comparator.comparing(CategoryTrend::getGrowthRate).reversed())
+                .sorted(Comparator.<CategoryTrend, BigDecimal>comparing(
+                        row -> resolveTwelveMonthGrowth(trends, row, platformLabel)).reversed())
 
                 .limit(3)
 
-                .map(row -> fromTrend(row, trends, platform))
+                .map(row -> fromTrend(row, trends, platformLabel))
 
                 .toList();
+
+    }
+
+    private BigDecimal resolveTwelveMonthGrowth(List<CategoryTrend> trends, CategoryTrend row, String platformLabel) {
+
+        return twelveMonthGrowthCalculator.janToDecGrowth(trends, row.getCategoryName(), platformLabel)
+
+                .orElse(row.getGrowthRate() != null ? row.getGrowthRate() : BigDecimal.ZERO);
 
     }
 

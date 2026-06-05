@@ -31,7 +31,7 @@
           <div><dt>12月增长率</dt><dd>{{ item.growthRate12m ?? '—' }}</dd></div>
           <div><dt>社媒热度</dt><dd>{{ item.socialHeat ?? '—' }}</dd></div>
           <div><dt>飙升词</dt><dd>{{ item.risingWords ?? '—' }}</dd></div>
-          <div><dt>各平台增速</dt><dd>{{ item.platformGrowthRates ?? '—' }}</dd></div>
+          <div><dt>各平台12月同比</dt><dd>{{ item.platformGrowthRates ?? '—' }}</dd></div>
           <div v-if="item.tamSamSomSummary"><dt>TAM/SAM/SOM</dt><dd>{{ item.tamSamSomSummary }}</dd></div>
         </dl>
         <small>{{ item.categoryDescription ?? item.description }}</small>

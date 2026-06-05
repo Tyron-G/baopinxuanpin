@@ -31,6 +31,17 @@ class CategoryBriefBuilderTest {
         assertEquals("30.0%", top3.get(0).growthRate12m());
     }
 
+    @Test
+    void shouldRankTrendTop3ByJanDecGrowthNotLatestMonthRate() {
+        CategoryTrend petJan = trend("宠物智能用品", PlatformView.ALL.getLabel(), "2025-01", 5, 1000);
+        CategoryTrend petDec = trend("宠物智能用品", PlatformView.ALL.getLabel(), "2025-12", 99, 1500);
+        CategoryTrend coffeeJan = trend("便携式咖啡器具", PlatformView.ALL.getLabel(), "2025-01", 5, 1000);
+        CategoryTrend coffeeDec = trend("便携式咖啡器具", PlatformView.ALL.getLabel(), "2025-12", 10, 1100);
+        var top3 = builder.trendTop3(List.of(coffeeDec, coffeeJan, petDec, petJan), "全平台");
+        assertEquals("宠物智能用品", top3.get(0).categoryName());
+        assertEquals("50.0%", top3.get(0).growthRate12m());
+    }
+
     private CategoryTrend trend(String category, String platform, String month, int growth, int volume) {
         CategoryTrend row = new CategoryTrend();
         row.setCategoryName(category);

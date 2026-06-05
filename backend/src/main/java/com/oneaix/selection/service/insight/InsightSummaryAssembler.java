@@ -56,7 +56,7 @@ public class InsightSummaryAssembler {
 
         String trendConclusion = trendTop3.isEmpty()
                 ? "当前约束下暂无可用趋势信号，请调整排除品类或预算后重试。"
-                : "搜索增速与社媒热度同步上升，" + trendTop3.get(0).categoryName() + " 处于需求加速阶段。";
+                : "12 月同比与社媒热度同步上升，" + trendTop3.get(0).categoryName() + " 处于需求加速阶段。";
 
         String competitionConclusion = competitionTop3.isEmpty()
                 ? "暂无竞争格局数据。"

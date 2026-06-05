@@ -88,10 +88,10 @@
 
     <section v-if="summary?.potentialCategories?.length" class="panel pad potential-panel">
       <span class="eyebrow">潜力类目清单</span>
-      <h2>搜索增速＞30% 且社媒同步上升的赛道</h2>
+      <h2>12 月同比＞30% 且社媒同步上升的赛道</h2>
       <el-table :data="summary.potentialCategories" stripe size="small">
         <el-table-column prop="categoryName" label="类目" width="140" />
-        <el-table-column prop="searchGrowth" label="搜索增速" width="120" />
+        <el-table-column prop="searchGrowth" label="12月同比" width="120" />
         <el-table-column prop="socialTrend" label="社媒趋势" width="120" />
         <el-table-column prop="risingWords" label="飙升词" />
         <el-table-column prop="tam" label="TAM" width="100" />
