@@ -12,7 +12,7 @@
 
     <WorkflowSummary current-stage="insight" :workflow="workflow" />
 
-    <ProductMetricsPanel />
+    <ProductMetricsPanel :brand-id="brandId" />
 
     <section class="panel pad insight-hero">
       <div class="insight-hero-main">

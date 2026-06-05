@@ -32,21 +32,21 @@
 
       <article><span>优先赛道</span><b class="small">{{ dashboard?.topCategory ?? '-' }}</b></article>
 
-      <article v-if="kpi('nps_iter1')"><span>NPS（样例）</span><b>{{ kpi('nps_iter1') }}</b></article>
+      <article v-if="kpi('nps_mvp')"><span>NPS（推算）</span><b>{{ kpi('nps_mvp') }}</b></article>
 
-      <article v-if="kpi('retention')"><span>留存（样例）</span><b>{{ kpi('retention') }}</b></article>
+      <article v-if="kpi('retention_iter1')"><span>留存（推算）</span><b>{{ kpi('retention_iter1') }}</b></article>
 
     </div>
 
     <nav class="mobile-nav">
 
-      <RouterLink :to="{ path: '/radar', query: { brandId: getBrandId(), platform } }">信号</RouterLink>
+      <RouterLink :to="{ path: '/radar', query: { brandId, platform } }">信号</RouterLink>
 
-      <RouterLink :to="{ path: '/ranking', query: { brandId: getBrandId(), platform } }">榜单</RouterLink>
+      <RouterLink :to="{ path: '/ranking', query: { brandId, platform } }">榜单</RouterLink>
 
-      <RouterLink :to="{ path: '/insight', query: { brandId: getBrandId(), platform } }">洞察</RouterLink>
+      <RouterLink :to="{ path: '/insight', query: { brandId, platform } }">洞察</RouterLink>
 
-      <RouterLink :to="{ path: '/competitor', query: { brandId: getBrandId() } }">竞品</RouterLink>
+      <RouterLink :to="{ path: '/competitor', query: { brandId } }">竞品</RouterLink>
 
     </nav>
 
@@ -58,13 +58,13 @@
 
 <script setup lang="ts">
 
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 
 import { useRoute } from 'vue-router'
 
 import { api } from '@/api'
 
-import { getBrandId } from '@/composables/useBrandContext'
+import { getBrandId, setBrandId } from '@/composables/useBrandContext'
 
 import { DEFAULT_PLATFORM_VIEW } from '@/constants/brand'
 
@@ -73,6 +73,15 @@ import type { DashboardSummary, ProductMetricsKpi } from '@/types'
 
 
 const route = useRoute()
+
+const brandId = computed(() => {
+  const queryId = Number(route.query.brandId)
+  if (Number.isFinite(queryId) && queryId > 0) {
+    setBrandId(queryId)
+    return queryId
+  }
+  return getBrandId()
+})
 
 const dashboard = ref<DashboardSummary>()
 
@@ -102,13 +111,13 @@ function kpi(key: string) {
 
 async function load() {
 
-  const brandId = getBrandId()
+  const id = brandId.value
 
   const [dash, kpiData] = await Promise.all([
 
-    api.getDashboard(brandId, platform.value),
+    api.getDashboard(id, platform.value),
 
-    api.getProductMetrics()
+    api.getProductMetrics(id)
 
   ])
 
@@ -121,6 +130,7 @@ async function load() {
 
 
 onMounted(load)
+watch(brandId, load)
 
 </script>
 

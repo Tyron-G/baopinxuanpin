@@ -33,7 +33,7 @@ async function load() {
 }
 
 onMounted(load)
-watch(() => props.brandId, load)
+watch(() => props.brandId, load, { immediate: false })
 </script>
 
 <style scoped>
