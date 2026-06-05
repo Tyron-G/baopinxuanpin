@@ -9,7 +9,7 @@
         <span>平台视角</span>
         <b>{{ activePlatform }}</b>
         <small>切换后会同步重算价格带缺口和供给稀缺度。</small>
-        <el-segmented v-model="activePlatform" :options="platformOptions" />
+        <el-segmented v-if="!lockedPlatform" v-model="internalPlatform" :options="platformOptions" />
         <span class="chart-mode-label">图表模式</span>
         <el-segmented v-model="chartMode" :options="chartModeOptions" />
       </div>
@@ -59,9 +59,11 @@ import { echarts } from '@/lib/echarts'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import type { SupplyDemand } from '@/types'
 
-const props = defineProps<{ rows: SupplyDemand[] }>()
+const props = defineProps<{ rows: SupplyDemand[]; platform?: string }>()
 const chartRef = ref<HTMLDivElement>()
-const activePlatform = ref('全平台')
+const internalPlatform = ref('全平台')
+const activePlatform = computed(() => props.platform ?? internalPlatform.value)
+const lockedPlatform = computed(() => Boolean(props.platform))
 const chartMode = ref<'prd' | 'dual'>('prd')
 const chartModeOptions = [
   { label: 'PRD单柱', value: 'prd' },
@@ -202,12 +204,12 @@ onBeforeUnmount(() => {
 })
 
 watch(() => props.rows, () => {
-  if (!platformOptions.value.includes(activePlatform.value)) {
-    activePlatform.value = '全平台'
+  if (!lockedPlatform.value && !platformOptions.value.includes(internalPlatform.value)) {
+    internalPlatform.value = '全平台'
   }
   nextTick(render)
 }, { deep: true })
-watch(activePlatform, () => nextTick(render))
+watch([activePlatform, () => props.rows], () => nextTick(render), { deep: true })
 watch(chartMode, () => nextTick(render))
 defineExpose({ resize })
 </script>

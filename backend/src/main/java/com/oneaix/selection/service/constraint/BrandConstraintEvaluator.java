@@ -78,11 +78,25 @@ public class BrandConstraintEvaluator {
     }
 
     public boolean isPinnedTarget(BrandInfo brand, InsightCard card) {
-        return isTargetCategory(brand, card);
+        return matchesExistingProduct(brand, card) || isTargetCategory(brand, card);
+    }
+
+    /** PRD：已有产品相关赛道优先展示 2026-06-05 */
+    public boolean matchesExistingProduct(BrandInfo brand, InsightCard card) {
+        Set<String> products = parseCsv(brand.getExistingProducts());
+        if (products.isEmpty()) {
+            return false;
+        }
+        String category = card.getCategoryName();
+        return products.stream().anyMatch(product ->
+                CategoryNameMatcher.matches(category, product) || category.contains(product) || product.contains(category));
     }
 
     public List<String> buildConstraintHints(BrandInfo brand, InsightCard card) {
         List<String> hints = new ArrayList<>();
+        if (matchesExistingProduct(brand, card)) {
+            hints.add("与您的已有产品相关，已优先展示");
+        }
         if (Boolean.TRUE.equals(brand.getHasCategory())
                 && brand.getTargetCategory() != null
                 && CategoryNameMatcher.matches(card.getCategoryName(), brand.getTargetCategory())) {
@@ -159,7 +173,8 @@ public class BrandConstraintEvaluator {
 
     private Comparator<InsightCard> buildCardComparator(BrandInfo brand) {
         return Comparator
-                .comparing((InsightCard card) -> isPinnedTarget(brand, card) ? 0 : 1)
+                .comparing((InsightCard card) -> matchesExistingProduct(brand, card) ? 0 : 1)
+                .thenComparing((InsightCard card) -> isTargetCategory(brand, card) ? 0 : 1)
                 .thenComparing(card -> isBudgetCompatible(brand, card) ? 0 : 1)
                 .thenComparing(card -> parseGrowth(card.getMarketGrowth()), Comparator.reverseOrder())
                 .thenComparing(InsightCard::getId);
@@ -173,7 +188,7 @@ public class BrandConstraintEvaluator {
         return CategoryKeyword.isSearchDriven(card.getCategoryName());
     }
 
-    private boolean isTargetCategory(BrandInfo brand, InsightCard card) {
+    public boolean isTargetCategory(BrandInfo brand, InsightCard card) {
         if (!Boolean.TRUE.equals(brand.getHasCategory()) || brand.getTargetCategory() == null) {
             return false;
         }

@@ -49,6 +49,7 @@
         <span class="eyebrow">竞争格局报告</span>
         <h3>{{ competitionReport.marketType }}</h3>
         <dl>
+          <div v-if="competitionReport.cr3"><dt>CR3</dt><dd>{{ competitionReport.cr3 }}</dd></div>
           <div><dt>CR5</dt><dd>{{ competitionReport.cr5 }}</dd></div>
           <div><dt>进入窗口</dt><dd>{{ competitionReport.entryWindow }}</dd></div>
         </dl>

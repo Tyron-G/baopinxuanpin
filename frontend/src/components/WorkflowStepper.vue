@@ -77,6 +77,7 @@ const baseSteps = [
   { name: 'data-prep', title: '数据准备' },
   { name: 'radar', title: '信号雷达' },
   { name: 'insight', title: '洞察发现' },
+  { name: 'ranking', title: '机会榜单' },
   { name: 'opportunity', title: '爆品机会' },
   { name: 'report', title: '选品报告' }
 ]
@@ -94,7 +95,9 @@ const steps = computed(() => baseSteps.map((step, index) => {
         ? { path: '/radar', query: { brandId: brandId.value } }
         : step.name === 'insight'
           ? { path: '/insight', query: { brandId: brandId.value } }
-          : step.name === 'opportunity'
+          : step.name === 'ranking'
+            ? { path: '/ranking', query: { brandId: brandId.value } }
+            : step.name === 'opportunity'
             ? { path: `/opportunity/${props.bestCardId}`, query: { brandId: brandId.value } }
             : { path: `/report/${props.bestCardId}`, query: { brandId: brandId.value } }
   }

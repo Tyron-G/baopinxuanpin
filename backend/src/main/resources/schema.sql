@@ -25,6 +25,7 @@ CREATE TABLE brand_info (
   supply_chain VARCHAR(500),
   stock_cycle VARCHAR(50),
   exclude_categories VARCHAR(300),
+  existing_products VARCHAR(500),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

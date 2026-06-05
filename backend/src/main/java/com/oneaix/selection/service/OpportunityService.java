@@ -49,6 +49,7 @@ public class OpportunityService {
     public List<Opportunity> points(Long cardId, Long brandId, String platformView) {
         BrandSelectionContext context = contextLoader.load(brandId);
         catalogService.requireVisible(cardId, context);
-        return opportunityPointService.list(cardId, platformView);
+        var card = catalogService.requireVisible(cardId, context);
+        return opportunityPointService.list(cardId, card.getCategoryName(), platformView);
     }
 }

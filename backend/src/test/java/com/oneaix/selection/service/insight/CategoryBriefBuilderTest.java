@@ -18,7 +18,7 @@ class CategoryBriefBuilderTest {
     void shouldPreferAllPlatformTrendRows() {
         CategoryTrend all = trend("宠物智能用品", PlatformView.ALL.getLabel(), "2026-05", 30);
         CategoryTrend douyin = trend("宠物智能用品", PlatformView.DOUYIN.getLabel(), "2026-06", 99);
-        var top3 = builder.trendTop3(List.of(douyin, all));
+        var top3 = builder.trendTop3(List.of(douyin, all), "全平台");
         assertEquals(1, top3.size());
         assertEquals("宠物智能用品", top3.get(0).categoryName());
         assertEquals("月增速 30.0%", top3.get(0).metric());

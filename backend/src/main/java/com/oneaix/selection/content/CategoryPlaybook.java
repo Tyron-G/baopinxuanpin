@@ -22,6 +22,7 @@ public final class CategoryPlaybook {
     private final long cardId;
     private final List<String> differentiationAdvice;
     private final String marketType;
+    private final String cr3;
     private final String cr5;
     private final String entryWindow;
     private final String defaultCompetitionNote;
@@ -35,6 +36,7 @@ public final class CategoryPlaybook {
             long cardId,
             List<String> differentiationAdvice,
             String marketType,
+            String cr3,
             String cr5,
             String entryWindow,
             String defaultCompetitionNote,
@@ -47,6 +49,7 @@ public final class CategoryPlaybook {
         this.cardId = cardId;
         this.differentiationAdvice = List.copyOf(differentiationAdvice);
         this.marketType = marketType;
+        this.cr3 = cr3;
         this.cr5 = cr5;
         this.entryWindow = entryWindow;
         this.defaultCompetitionNote = defaultCompetitionNote;
@@ -75,7 +78,7 @@ public final class CategoryPlaybook {
 
     public CompetitionReport buildCompetitionReport(InsightCard card, PlatformView platform) {
         String summary = card.getCompetitionPattern() + "，" + resolveCompetitionNote(card, platform);
-        return new CompetitionReport(marketType, cr5, entryWindow, summary);
+        return new CompetitionReport(marketType, cr3, cr5, entryWindow, summary);
     }
 
     public ProfitAnalysis buildProfitAnalysis(PlatformView platform) {
@@ -132,6 +135,7 @@ public final class CategoryPlaybook {
                         "如果主平台包含抖音，先用“独自在家宠物焦虑”场景做内容切入，再把夜视和异常提醒作为高转化卖点。"
                 ),
                 "浅蓝海 / 分散竞争",
+                "CR3 18%",
                 "CR5 28%",
                 "6-12 个月",
                 "{recommendation}",
@@ -181,6 +185,7 @@ public final class CategoryPlaybook {
                         "把竞品高频差评里的“清洗麻烦、防漏一般”转成显性结构优化，价格带仍控制在 99-169 元区间内。"
                 ),
                 "腰部竞争 / 场景可细分",
+                "CR3 28%",
                 "CR5 39%",
                 "3-6 个月验证窗",
                 "建议先做场景测款。",
@@ -226,6 +231,7 @@ public final class CategoryPlaybook {
                 3L,
                 List.of("当前赛道头部锁定较强，更适合寻找售后透明、耗材成本可控的小切口，而不是直接卷整机性能。"),
                 "深红海 / 头部锁定",
+                "CR3 48%",
                 "CR5 63%",
                 "不建议新品牌冷启动",
                 "{recommendation}",
@@ -251,6 +257,57 @@ public final class CategoryPlaybook {
                 List.of(
                         new CrowdScene("大户型家庭", "日常深度清洁", "清洁死角和维护成本高", "低维护、强避障"),
                         new CrowdScene("养宠家庭", "毛发频繁堆积", "滚刷缠绕、耗材贵", "防缠绕、耗材透明")
+                )
+        );
+    }
+
+    /** 10 品类扩展：由类目画像生成通用 Playbook 2026-06-05 */
+    static CategoryPlaybook fromProfile(CategoryUniverseCatalog.CategoryProfile profile) {
+        return fromCard(profile.categoryName(), profile.recommendation(), profile.competitionPattern(), profile.priceGap());
+    }
+
+    static CategoryPlaybook fromCard(InsightCard card) {
+        return fromCard(
+                card.getCategoryName(),
+                card.getRecommendation(),
+                card.getCompetitionPattern(),
+                card.getPriceGap()
+        );
+    }
+
+    private static CategoryPlaybook fromCard(String categoryName, String recommendation, String competitionPattern, String priceGap) {
+        return new CategoryPlaybook(
+                0L,
+                List.of(
+                        categoryName + " 建议优先验证「" + priceGap + "」价格带，用场景差异化避开同质化。",
+                        recommendation == null ? "先小批量测款，再决定是否加投。" : recommendation
+                ),
+                competitionPattern == null ? "中等竞争" : competitionPattern,
+                "CR3 22%",
+                "CR5 35%",
+                "3-9 个月",
+                "{recommendation}",
+                Map.of(),
+                new ProfitTemplate(
+                        "99-199 元", "42-58 元", "8%-12%", "16%-20%", "15%-22%",
+                        categoryName + " 在样例口径下仍具备试产验证空间。",
+                        Map.of()
+                ),
+                new SupplyChainTemplate(
+                        "300-1000 件", "30-45 天",
+                        "可对接现有代工资源，支持轻定制",
+                        "需关注认证与售后周期",
+                        "可结合品牌现有供应链做小批量试产。"
+                ),
+                List.of(
+                        term("品质稳定", 72, SentimentPolarity.POSITIVE),
+                        term("性价比", 68, SentimentPolarity.POSITIVE),
+                        term("售后慢", 55, SentimentPolarity.NEGATIVE),
+                        term("同质化", 48, SentimentPolarity.NEGATIVE)
+                ),
+                List.of(
+                        new CrowdScene("核心人群", "高频使用场景", "现有产品体验不足", "差异化功能 + 稳定交付"),
+                        new CrowdScene("增量人群", "礼品/种草场景", "缺乏差异化记忆点", "场景包装 + 轻定制")
                 )
         );
     }

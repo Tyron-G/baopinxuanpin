@@ -50,7 +50,7 @@ public class InsightService {
     }
 
     @TrackedExecution(value = "insight-summary", domain = "insight")
-    public InsightSummary summary(Long brandId) {
+    public InsightSummary summary(Long brandId, String platform) {
         BrandSelectionContext context = contextLoader.load(brandId);
         Set<String> visible = context.visibleCategoryNames();
         return summaryAssembler.build(new InsightSummaryBuildRequest(
@@ -60,7 +60,8 @@ public class InsightService {
                 context.cards(),
                 marketDataService.trends(visible),
                 marketDataService.competition(visible),
-                marketDataService.supplyDemand(visible)
+                marketDataService.supplyDemand(visible),
+                platform
         ));
     }
 

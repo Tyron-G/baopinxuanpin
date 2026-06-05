@@ -25,7 +25,8 @@ class BrandProfileNormalizerTest {
                 null,
                 null,
                 null,
-                List.of("清洁", "清洁", "食品")
+                List.of("清洁", "清洁", "食品"),
+                null
         );
 
         var normalized = normalizer.normalize(request);

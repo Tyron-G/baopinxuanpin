@@ -112,6 +112,18 @@
         </div>
       </section>
 
+      <section v-if="detail.externalDrivers?.length" class="panel pad external-drivers-panel">
+        <span class="eyebrow">外部驱动因素（PRD）</span>
+        <h2>政策 · 人口 · 技术 · 季节判断</h2>
+        <div class="external-driver-grid">
+          <article v-for="item in detail.externalDrivers" :key="item.driverType">
+            <span>{{ item.driverType }}</span>
+            <b>{{ item.signal }}</b>
+            <small>{{ item.impact }}</small>
+          </article>
+        </div>
+      </section>
+
       <section class="panel pad intel-panel">
         <span class="eyebrow">供应链与合规（PRD）</span>
         <div class="intel-grid">
@@ -986,6 +998,36 @@ watch(() => [props.cardId, brandId.value, platformView.value], load)
 .market-context-grid b {
   display: block;
   margin: 6px 0;
+}
+
+.external-driver-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.external-driver-grid article {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(248, 251, 255, 0.95);
+  border: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.external-driver-grid span {
+  display: block;
+  color: var(--muted-soft);
+  font-size: 11px;
+}
+
+.external-driver-grid b {
+  display: block;
+  margin: 6px 0;
+}
+
+.external-driver-grid small {
+  color: var(--text-secondary);
+  line-height: 1.5;
 }
 
 .intel-panel .intel-grid,

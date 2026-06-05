@@ -27,6 +27,7 @@ public record OpportunityDetail(
         PatentIntel patentIntel,
         Alibaba1688Intel alibaba1688Intel,
         List<SellingPointSuggestion> sellingPoints,
-        OpportunityMarketContext marketContext
+        OpportunityMarketContext marketContext,
+        List<ExternalDriverItem> externalDrivers
 ) {
 }

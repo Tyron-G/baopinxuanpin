@@ -9,7 +9,7 @@
         <span>平台视角</span>
         <b>{{ activePlatform }}</b>
         <small>切换后会同步重算进入窗口和对象密度判断。</small>
-        <el-segmented v-model="activePlatform" :options="platformOptions" />
+        <el-segmented v-if="!lockedPlatform" v-model="internalPlatform" :options="platformOptions" />
       </div>
     </div>
     <div class="chart-ribbon">
@@ -62,9 +62,11 @@ import { echarts } from '@/lib/echarts'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import type { CompetitionData } from '@/types'
 
-const props = defineProps<{ rows: CompetitionData[] }>()
+const props = defineProps<{ rows: CompetitionData[]; platform?: string }>()
 const chartRef = ref<HTMLDivElement>()
-const activePlatform = ref('全平台')
+const internalPlatform = ref('全平台')
+const activePlatform = computed(() => props.platform ?? internalPlatform.value)
+const lockedPlatform = computed(() => Boolean(props.platform))
 let chart: echarts.ECharts | null = null
 let resizeObserver: ResizeObserver | null = null
 
@@ -157,12 +159,12 @@ onBeforeUnmount(() => {
 })
 
 watch(() => props.rows, () => {
-  if (!platformOptions.value.includes(activePlatform.value)) {
-    activePlatform.value = '全平台'
+  if (!lockedPlatform.value && !platformOptions.value.includes(internalPlatform.value)) {
+    internalPlatform.value = '全平台'
   }
   nextTick(render)
 }, { deep: true })
-watch(activePlatform, () => nextTick(render))
+watch([activePlatform, () => props.rows], () => nextTick(render), { deep: true })
 defineExpose({ resize })
 </script>
 

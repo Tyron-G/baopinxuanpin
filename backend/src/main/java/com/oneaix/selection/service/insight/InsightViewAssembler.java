@@ -116,7 +116,10 @@ public class InsightViewAssembler {
 
     public List<String> buildMatchTags(BrandInfo brand, InsightCard card) {
         List<String> tags = new ArrayList<>();
-        if (constraintEvaluator.isPinnedTarget(brand, card)) {
+        if (constraintEvaluator.matchesExistingProduct(brand, card)) {
+            tags.add("已有产品相关");
+        }
+        if (constraintEvaluator.isTargetCategory(brand, card)) {
             tags.add(MatchTag.TARGET_CATEGORY.getLabel());
         }
         if (constraintEvaluator.isBudgetCompatible(brand, card)) {

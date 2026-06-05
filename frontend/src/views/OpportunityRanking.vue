@@ -41,7 +41,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { api } from '@/api'
 import { getBrandId } from '@/composables/useBrandContext'
 import type { OpportunityRankItem, OpportunityRankingPage } from '@/types'
@@ -49,6 +49,7 @@ import PageHero from '@/components/common/PageHero.vue'
 import { getApiErrorMessage } from '@/lib/apiError'
 import { ElMessage } from 'element-plus'
 
+const route = useRoute()
 const router = useRouter()
 const loading = ref(true)
 const page = ref<OpportunityRankingPage>()
@@ -67,7 +68,11 @@ async function load() {
 }
 
 function openCard(cardId: number) {
-  router.push({ path: `/opportunity/${cardId}`, query: { brandId: getBrandId() } })
+  const platform = typeof route.query.platform === 'string' ? route.query.platform : undefined
+  router.push({
+    path: `/opportunity/${cardId}`,
+    query: { brandId: getBrandId(), ...(platform ? { platform } : {}) }
+  })
 }
 
 onMounted(load)

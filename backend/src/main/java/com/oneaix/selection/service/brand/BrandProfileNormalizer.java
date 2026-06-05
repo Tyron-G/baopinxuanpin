@@ -27,7 +27,8 @@ public class BrandProfileNormalizer {
                 request.profitMin(),
                 request.supplyChain(),
                 request.stockCycle(),
-                join(excludes)
+                join(excludes),
+                request.existingProducts() == null ? null : request.existingProducts().trim()
         );
     }
 
@@ -63,7 +64,8 @@ public class BrandProfileNormalizer {
             String profitMin,
             String supplyChain,
             String stockCycle,
-            String excludeCategories
+            String excludeCategories,
+            String existingProducts
     ) {
     }
 }

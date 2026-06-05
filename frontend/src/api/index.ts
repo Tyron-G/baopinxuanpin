@@ -59,8 +59,12 @@ export const api = {
   getInsightCards(brandId?: number) {
     return http.get<InsightCardView[]>('/insight/cards', { params: { brandId: resolveBrandId(brandId) } }).then((res) => res.data)
   },
-  getInsightSummary(brandId?: number) {
-    return http.get<InsightSummary>('/insight/summary', { params: { brandId: resolveBrandId(brandId) } }).then((res) => res.data)
+  getInsightSummary(brandId?: number, platform?: string) {
+    return http
+      .get<InsightSummary>('/insight/summary', {
+        params: { brandId: resolveBrandId(brandId), platform: platform || undefined }
+      })
+      .then((res) => res.data)
   },
   getSignals(brandId?: number) {
     return http.get<SignalItem[]>('/radar/signals', { params: { brandId: resolveBrandId(brandId) } }).then((res) => res.data)

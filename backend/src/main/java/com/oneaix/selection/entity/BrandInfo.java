@@ -19,6 +19,7 @@ public class BrandInfo {
     private String supplyChain;
     private String stockCycle;
     private String excludeCategories;
+    private String existingProducts;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -44,4 +45,6 @@ public class BrandInfo {
     public void setStockCycle(String stockCycle) { this.stockCycle = stockCycle; }
     public String getExcludeCategories() { return excludeCategories; }
     public void setExcludeCategories(String excludeCategories) { this.excludeCategories = excludeCategories; }
+    public String getExistingProducts() { return existingProducts; }
+    public void setExistingProducts(String existingProducts) { this.existingProducts = existingProducts; }
 }

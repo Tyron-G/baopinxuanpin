@@ -1,5 +1,5 @@
-INSERT INTO brand_info (brand_name, industry, target_category, has_category, interest_direction, target_platforms, budget_range, profit_min, supply_chain, stock_cycle, exclude_categories)
-VALUES ('样例品牌', '生活消费品', '宠物用品', TRUE, '智能硬件与高复购耗材', '天猫,抖音,小红书', '20-50万', '15-25%', '华东小家电供应链，可接受小批量试产', '30-60天', '食品,医疗器械');
+INSERT INTO brand_info (brand_name, industry, target_category, has_category, interest_direction, target_platforms, budget_range, profit_min, supply_chain, stock_cycle, exclude_categories, existing_products)
+VALUES ('样例品牌', '生活消费品', '宠物用品', TRUE, '智能硬件与高复购耗材', '天猫,抖音,小红书', '20-50万', '15-25%', '华东小家电供应链，可接受小批量试产', '30-60天', '食品,医疗器械', '智能喂食器,宠物摄像头');
 
 INSERT INTO category_trend (category_name, platform, trend_month, search_volume, sales_volume, growth_rate, social_heat, rising_words) VALUES
 ('宠物智能用品', '全平台', '2025-07', 42000, 11800, 18.2, 7600, '自动喂食,宠物摄像头'),

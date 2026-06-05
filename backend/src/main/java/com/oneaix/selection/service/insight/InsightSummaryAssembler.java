@@ -44,9 +44,12 @@ public class InsightSummaryAssembler {
                 request.visibleCategoryNames()
         );
 
-        List<CategoryBrief> trendTop3 = categoryBriefBuilder.trendTop3(request.trends());
-        List<CategoryBrief> competitionTop3 = categoryBriefBuilder.competitionTop3(request.competition());
-        List<CategoryBrief> supplyTop3 = categoryBriefBuilder.supplyTop3(request.supplyDemand());
+        String platform = request.platform() == null || request.platform().isBlank()
+                ? "全平台"
+                : request.platform();
+        List<CategoryBrief> trendTop3 = categoryBriefBuilder.trendTop3(request.trends(), platform);
+        List<CategoryBrief> competitionTop3 = categoryBriefBuilder.competitionTop3(request.competition(), platform);
+        List<CategoryBrief> supplyTop3 = categoryBriefBuilder.supplyTop3(request.supplyDemand(), platform);
 
         String trendConclusion = trendTop3.isEmpty()
                 ? "当前约束下暂无可用趋势信号，请调整排除品类或预算后重试。"

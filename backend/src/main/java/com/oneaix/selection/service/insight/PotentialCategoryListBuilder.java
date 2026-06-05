@@ -30,6 +30,7 @@ public class PotentialCategoryListBuilder {
             if (!syncUp && items.size() >= 5) {
                 continue;
             }
+            MarketScaleBrief scale = marketScaleFor(category);
             items.add(new PotentialCategoryItem(
                     category,
                     "搜索增速 " + growth + "%",
@@ -38,18 +39,27 @@ public class PotentialCategoryListBuilder {
                     syncUp,
                     syncUp
                             ? category + " 搜索与社媒同步上升，属于 PRD 定义的潜力类目。"
-                            : category + " 具备观察价值，建议结合平台视角继续验证。"
+                            : category + " 具备观察价值，建议结合平台视角继续验证。",
+                    scale.tam(),
+                    scale.sam(),
+                    scale.som(),
+                    scale.summary()
             ));
         }
         if (items.isEmpty() && !rankedCards.isEmpty()) {
             InsightCardView first = rankedCards.get(0);
+            MarketScaleBrief scale = marketScaleFor(first.card().getCategoryName());
             items.add(new PotentialCategoryItem(
                     first.card().getCategoryName(),
                     first.card().getMarketGrowth(),
                     "社媒热度同步",
                     "内置样例词",
                     true,
-                    "当前约束下优先推荐的潜力类目。"
+                    "当前约束下优先推荐的潜力类目。",
+                    scale.tam(),
+                    scale.sam(),
+                    scale.som(),
+                    scale.summary()
             ));
         }
         return items;

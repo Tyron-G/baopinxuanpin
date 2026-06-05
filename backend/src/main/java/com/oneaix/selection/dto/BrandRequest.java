@@ -17,6 +17,7 @@ public record BrandRequest(
         String profitMin,
         String supplyChain,
         String stockCycle,
-        List<String> excludeCategories
+        List<String> excludeCategories,
+        String existingProducts
 ) {
 }

@@ -10,6 +10,7 @@ export interface BrandRequest {
   supplyChain: string
   stockCycle: string
   excludeCategories: string[]
+  existingProducts?: string
 }
 
 export interface BrandInfo extends Omit<BrandRequest, 'targetPlatforms' | 'excludeCategories'> {
@@ -529,6 +530,10 @@ export interface PotentialCategoryItem {
   risingWords: string
   socialSyncUp: boolean
   summary: string
+  tam?: string
+  sam?: string
+  som?: string
+  tamSamSomSummary?: string
 }
 
 export interface MarketScaleBrief {
@@ -624,9 +629,16 @@ export interface SupplyChainFeasibility {
 
 export interface CompetitionReport {
   marketType: string
+  cr3?: string
   cr5: string
   entryWindow: string
   summary: string
+}
+
+export interface ExternalDriverItem {
+  driverType: string
+  signal: string
+  impact: string
 }
 
 export interface ReportAction {
@@ -662,4 +674,5 @@ export interface OpportunityDetail {
   alibaba1688Intel: Alibaba1688Intel
   sellingPoints: SellingPointSuggestion[]
   marketContext: OpportunityMarketContext
+  externalDrivers?: ExternalDriverItem[]
 }

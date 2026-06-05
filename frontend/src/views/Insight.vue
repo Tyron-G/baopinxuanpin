@@ -94,6 +94,9 @@
         <el-table-column prop="searchGrowth" label="搜索增速" width="120" />
         <el-table-column prop="socialTrend" label="社媒趋势" width="120" />
         <el-table-column prop="risingWords" label="飙升词" />
+        <el-table-column prop="tam" label="TAM" width="100" />
+        <el-table-column prop="sam" label="SAM" width="100" />
+        <el-table-column prop="som" label="SOM" width="100" />
         <el-table-column prop="socialSyncUp" label="同步上升" width="90">
           <template #default="{ row }">
             <el-tag :type="row.socialSyncUp ? 'success' : 'info'" size="small">{{ row.socialSyncUp ? '是' : '观察' }}</el-tag>
@@ -238,7 +241,7 @@
       <el-tabs v-model="activeTab" class="insight-tabs">
         <el-tab-pane label="机会在哪" name="trend" lazy>
           <div class="evidence-grid">
-            <MarketTrend ref="trendChartRef" :rows="trends" />
+            <MarketTrend ref="trendChartRef" :rows="trends" :platform="activePlatform" />
             <InsightConclusion
               v-if="summary"
               :conclusion="trendConclusionText"
@@ -249,7 +252,7 @@
         </el-tab-pane>
         <el-tab-pane label="竞争难度" name="competition" lazy>
           <div class="evidence-grid">
-            <CompetitionMap ref="competitionChartRef" :rows="competition" />
+            <CompetitionMap ref="competitionChartRef" :rows="competition" :platform="activePlatform" />
             <InsightConclusion
               v-if="summary"
               :conclusion="competitionConclusionText"
@@ -260,7 +263,7 @@
         </el-tab-pane>
         <el-tab-pane label="供需缺口" name="supply" lazy>
           <div class="evidence-grid">
-            <SupplyDemand ref="supplyChartRef" :rows="supplyDemand" />
+            <SupplyDemand ref="supplyChartRef" :rows="supplyDemand" :platform="activePlatform" />
             <InsightConclusion
               v-if="summary"
               :conclusion="supplyConclusionText"
@@ -359,11 +362,6 @@ import { useRoute, useRouter } from 'vue-router'
 import { Aim } from '@element-plus/icons-vue'
 import { api } from '@/api'
 import { getBrandId, setBrandId } from '@/composables/useBrandContext'
-import {
-  buildCompetitionTop3ForPlatform,
-  buildSupplyTop3ForPlatform,
-  buildTrendTop3ForPlatform
-} from '@/lib/insightPlatformTop3'
 import type {
   CategoryTrend,
   CompetitionData,
@@ -468,15 +466,9 @@ const ribbonActionLabel = computed(() => {
 const trendConclusionText = computed(() => buildPlatformConclusion(summary.value?.trendConclusion, trendPlatformRows.value, 'growthRate', '搜索与销量增速'))
 const competitionConclusionText = computed(() => buildPlatformConclusion(summary.value?.competitionConclusion, competitionPlatformRows.value, 'cr5', '头部集中度'))
 const supplyConclusionText = computed(() => buildPlatformConclusion(summary.value?.supplyConclusion, supplyPlatformRows.value, 'demandSupplyRatio', '供需缺口'))
-const trendTop3Display = computed(() =>
-  buildTrendTop3ForPlatform(activePlatform.value, trendPlatformRows.value, summary.value?.trendTop3 ?? [])
-)
-const competitionTop3Display = computed(() =>
-  buildCompetitionTop3ForPlatform(activePlatform.value, competitionPlatformRows.value, summary.value?.competitionTop3 ?? [])
-)
-const supplyTop3Display = computed(() =>
-  buildSupplyTop3ForPlatform(activePlatform.value, supplyPlatformRows.value, summary.value?.supplyTop3 ?? [])
-)
+const trendTop3Display = computed(() => summary.value?.trendTop3 ?? [])
+const competitionTop3Display = computed(() => summary.value?.competitionTop3 ?? [])
+const supplyTop3Display = computed(() => summary.value?.supplyTop3 ?? [])
 const emptyStateSubtitle = computed(() => {
   if (summary.value?.recommendedAdjustments?.length) {
     return `建议先调整：${summary.value.recommendedAdjustments[0]}`
@@ -491,7 +483,7 @@ async function loadInsight() {
     api.getCompetition(id),
     api.getSupplyDemand(id),
     api.getInsightCards(id),
-    api.getInsightSummary(id),
+    api.getInsightSummary(id, activePlatform.value),
     api.getWorkflow(id)
   ])
   trends.value = trendRows
@@ -528,6 +520,12 @@ watch(
   },
   { immediate: true }
 )
+watch(activePlatform, async (platform) => {
+  if (!brandId.value) return
+  summary.value = await api.getInsightSummary(brandId.value, platform)
+  await nextTick()
+  resizeActiveChart()
+})
 
 function openCard(id: number) {
   router.push({

@@ -79,7 +79,8 @@ const currentStep = computed(() => {
   const path = route.path
   if (path.startsWith('/data-prep')) return 'data-prep'
   if (path.startsWith('/radar')) return 'radar'
-  if (path.startsWith('/insight') || path.startsWith('/ranking')) return 'insight'
+  if (path.startsWith('/insight')) return 'insight'
+  if (path.startsWith('/ranking')) return 'ranking'
   if (path.startsWith('/opportunity')) return 'opportunity'
   if (path.startsWith('/report')) return 'report'
   return 'data-prep'

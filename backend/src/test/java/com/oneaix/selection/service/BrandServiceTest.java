@@ -5,6 +5,7 @@ import com.oneaix.selection.entity.BrandInfo;
 import com.oneaix.selection.exception.ResourceNotFoundException;
 import com.oneaix.selection.mapper.BrandInfoMapper;
 import com.oneaix.selection.service.brand.BrandProfileNormalizer;
+import com.oneaix.selection.validation.BrandRequestValidator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -28,6 +29,9 @@ class BrandServiceTest {
 
     @Mock
     private BrandProfileNormalizer profileNormalizer;
+
+    @Mock
+    private BrandRequestValidator brandRequestValidator;
 
     @InjectMocks
     private BrandService brandService;
@@ -63,7 +67,8 @@ class BrandServiceTest {
                 "15%",
                 "",
                 "30-60天",
-                "清洁,食品"
+                "清洁,食品",
+                "智能喂食器"
         ));
 
         BrandRequest request = new BrandRequest(
@@ -77,7 +82,8 @@ class BrandServiceTest {
                 "15%",
                 "",
                 "30-60天",
-                List.of("清洁", "清洁", "食品")
+                List.of("清洁", "清洁", "食品"),
+                "智能喂食器"
         );
 
         brandService.create(request);

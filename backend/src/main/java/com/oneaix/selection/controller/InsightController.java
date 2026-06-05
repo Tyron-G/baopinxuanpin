@@ -49,7 +49,10 @@ public class InsightController {
     }
 
     @GetMapping("/summary")
-    public InsightSummary summary(@RequestParam(defaultValue = ApiConstants.DEFAULT_BRAND_ID_PARAM) @Min(1) Long brandId) {
-        return insightService.summary(brandId);
+    public InsightSummary summary(
+            @RequestParam(defaultValue = ApiConstants.DEFAULT_BRAND_ID_PARAM) @Min(1) Long brandId,
+            @RequestParam(required = false) String platform
+    ) {
+        return insightService.summary(brandId, platform);
     }
 }

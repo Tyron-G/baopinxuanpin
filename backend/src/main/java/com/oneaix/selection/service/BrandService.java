@@ -5,6 +5,7 @@ import com.oneaix.selection.entity.BrandInfo;
 import com.oneaix.selection.mapper.BrandInfoMapper;
 import com.oneaix.selection.exception.ResourceNotFoundException;
 import com.oneaix.selection.service.brand.BrandProfileNormalizer;
+import com.oneaix.selection.validation.BrandRequestValidator;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -13,13 +14,20 @@ import java.util.Optional;
 public class BrandService {
     private final BrandInfoMapper brandInfoMapper;
     private final BrandProfileNormalizer profileNormalizer;
+    private final BrandRequestValidator brandRequestValidator;
 
-    public BrandService(BrandInfoMapper brandInfoMapper, BrandProfileNormalizer profileNormalizer) {
+    public BrandService(
+            BrandInfoMapper brandInfoMapper,
+            BrandProfileNormalizer profileNormalizer,
+            BrandRequestValidator brandRequestValidator
+    ) {
         this.brandInfoMapper = brandInfoMapper;
         this.profileNormalizer = profileNormalizer;
+        this.brandRequestValidator = brandRequestValidator;
     }
 
     public BrandInfo create(BrandRequest request) {
+        brandRequestValidator.validate(request);
         BrandProfileNormalizer.NormalizedBrandProfile normalized = profileNormalizer.normalize(request);
         BrandInfo brand = new BrandInfo();
         brand.setBrandName(normalized.brandName());
@@ -33,6 +41,7 @@ public class BrandService {
         brand.setSupplyChain(normalized.supplyChain());
         brand.setStockCycle(normalized.stockCycle());
         brand.setExcludeCategories(normalized.excludeCategories());
+        brand.setExistingProducts(normalized.existingProducts());
         brandInfoMapper.insert(brand);
         return brand;
     }

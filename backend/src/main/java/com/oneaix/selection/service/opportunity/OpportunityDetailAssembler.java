@@ -32,6 +32,7 @@ public class OpportunityDetailAssembler {
     private final CompetitorSummaryBuilder competitorSummaryBuilder;
     private final PlatformPlaybookBuilder platformPlaybookBuilder;
     private final OpportunityIntelBuilder opportunityIntelBuilder;
+    private final OpportunityExternalDriversBuilder externalDriversBuilder;
 
     public OpportunityDetailAssembler(
             InsightCardCatalogService catalogService,
@@ -44,7 +45,8 @@ public class OpportunityDetailAssembler {
             DifferentiationAdviceBuilder differentiationAdviceBuilder,
             CompetitorSummaryBuilder competitorSummaryBuilder,
             PlatformPlaybookBuilder platformPlaybookBuilder,
-            OpportunityIntelBuilder opportunityIntelBuilder
+            OpportunityIntelBuilder opportunityIntelBuilder,
+            OpportunityExternalDriversBuilder externalDriversBuilder
     ) {
         this.catalogService = catalogService;
         this.viewAssembler = viewAssembler;
@@ -57,6 +59,7 @@ public class OpportunityDetailAssembler {
         this.competitorSummaryBuilder = competitorSummaryBuilder;
         this.platformPlaybookBuilder = platformPlaybookBuilder;
         this.opportunityIntelBuilder = opportunityIntelBuilder;
+        this.externalDriversBuilder = externalDriversBuilder;
     }
 
     public OpportunityDetail assemble(Long cardId, BrandSelectionContext context, String platformView) {
@@ -64,7 +67,7 @@ public class OpportunityDetailAssembler {
         BrandInfo brand = context.brand();
         InsightCardView cardView = context.findCard(cardId)
                 .orElseGet(() -> viewAssembler.toView(brand, card));
-        CategoryPlaybook playbook = categoryPlaybookRegistry.resolve(cardId);
+        CategoryPlaybook playbook = categoryPlaybookRegistry.resolve(card);
         PlatformView platform = PlatformView.normalize(platformView);
 
         var relatedCompetitors = CompetitorShopFilter.filterByPlatform(
@@ -88,13 +91,14 @@ public class OpportunityDetailAssembler {
                 competitorSummaryBuilder.build(card, relatedCompetitors),
                 differentiationAdvice,
                 nextActionPlanner.build(cardId, card, brand, platformView),
-                opportunityPointService.list(cardId, platformView),
+                opportunityPointService.list(cardId, card.getCategoryName(), platformView),
                 playbook.sentimentTerms(),
                 playbook.crowdScenes(),
                 opportunityIntelBuilder.buildPatent(card, playbook),
                 opportunityIntelBuilder.build1688(card, playbook),
                 opportunityIntelBuilder.buildSellingPoints(card),
-                opportunityIntelBuilder.buildMarketContext(card)
+                opportunityIntelBuilder.buildMarketContext(card),
+                externalDriversBuilder.build(card)
         );
     }
 

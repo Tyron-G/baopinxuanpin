@@ -17,6 +17,7 @@ public record InsightSummaryBuildRequest(
         List<InsightCardView> rankedCards,
         List<CategoryTrend> trends,
         List<CompetitionData> competition,
-        List<SupplyDemand> supplyDemand
+        List<SupplyDemand> supplyDemand,
+        String platform
 ) {
 }

@@ -206,6 +206,14 @@
               <el-form-item v-else label="感兴趣方向" prop="interestDirection">
                 <el-input v-model="form.interestDirection" placeholder="如：智能硬件、高复购耗材" />
               </el-form-item>
+              <el-form-item label="已有产品（选填）" class="form-grid-full">
+                <el-input
+                  v-model="form.existingProducts"
+                  type="textarea"
+                  :rows="2"
+                  placeholder="如：智能喂食器,宠物摄像头（逗号分隔，相关赛道将优先展示）"
+                />
+              </el-form-item>
             </div>
 
             <div class="choice-surface">
@@ -394,7 +402,8 @@ const form = reactive<BrandRequest>({
   profitMin: '15-25%',
   supplyChain: '华东小家电供应链，可接受小批量试产',
   stockCycle: '30-60天',
-  excludeCategories: ['食品']
+  excludeCategories: ['食品'],
+  existingProducts: '智能喂食器,宠物摄像头'
 })
 
 const rules: FormRules = {
