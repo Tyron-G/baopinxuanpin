@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 /** 全局异常处理 2026-06-04 */
 @RestControllerAdvice
@@ -50,6 +51,13 @@ public class GlobalExceptionHandler {
         exceptionMetricsRecorder.record(request.getRequestURI(), 400, "request_validation_failed", ex);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ApiResult.fail(400, message, request.getRequestURI()));
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ApiResult<Void>> handleNoResource(NoResourceFoundException ex, HttpServletRequest request) {
+        exceptionMetricsRecorder.record(request.getRequestURI(), 404, "static_resource_not_found", ex);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResult.fail(404, "资源不存在", request.getRequestURI()));
     }
 
     @ExceptionHandler(Exception.class)

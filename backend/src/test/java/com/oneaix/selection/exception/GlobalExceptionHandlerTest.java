@@ -46,4 +46,18 @@ class GlobalExceptionHandlerTest {
                 .andExpect(jsonPath("$.availableTags[?(@.tag=='exception')]").exists())
                 .andExpect(jsonPath("$.availableTags[?(@.tag=='status')]").exists());
     }
+
+    @Test
+    void shouldRedirectRootToSwagger() throws Exception {
+        mockMvc.perform(get("/"))
+                .andExpect(status().is3xxRedirection());
+    }
+
+    @Test
+    void shouldReturnNotFoundForMissingStaticResource() throws Exception {
+        mockMvc.perform(get("/favicon.ico"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value(404))
+                .andExpect(jsonPath("$.message").value("资源不存在"));
+    }
 }

@@ -69,6 +69,8 @@ const activePlatform = computed(() => props.platform ?? internalPlatform.value)
 const lockedPlatform = computed(() => Boolean(props.platform))
 let chart: echarts.ECharts | null = null
 let resizeObserver: ResizeObserver | null = null
+type CompetitionPointData = [number, number, number, string]
+type CompetitionPointParam = { data: CompetitionPointData; dataIndex: number }
 
 const platformOptions = computed(() => [...new Set(props.rows.map((item) => item.platform))])
 const filteredRows = computed(() => {
@@ -104,7 +106,7 @@ function render() {
       }
     },
     tooltip: {
-      formatter: (params: any) => {
+      formatter: (params: CompetitionPointParam) => {
         const row = filteredRows.value[params.dataIndex]
         return `${row.categoryName}<br/>搜索量：${row.totalSearchVolume}<br/>SKU：${row.totalSkuCount}<br/>同质化：${row.homogeneityScore}<br/>Top10销量占比：${row.top10SalesRatio}%<br/>CR3：${row.cr3}% · CR5：${row.cr5}%<br/>${row.conclusion}`
       }
@@ -124,17 +126,17 @@ function render() {
     },
     series: [{
       type: 'scatter',
-      symbolSize: (data: number[]) => Math.max(34, Math.min(88, data[2] / 70)),
+      symbolSize: (data: CompetitionPointData) => Math.max(34, Math.min(88, data[2] / 70)),
       itemStyle: {
         color: '#2563eb',
         opacity: 0.78,
         shadowBlur: 18,
         shadowColor: 'rgba(37, 99, 235, 0.16)'
       },
-      data: filteredRows.value.map((row) => [row.totalSearchVolume, row.cr5, row.totalSkuCount, row.categoryName]),
+      data: filteredRows.value.map((row): CompetitionPointData => [row.totalSearchVolume, row.cr5, row.totalSkuCount, row.categoryName]),
       label: {
         show: true,
-        formatter: (params: any) => params.data[3],
+        formatter: (params: CompetitionPointParam) => params.data[3],
         position: 'top',
         color: '#52627a'
       }

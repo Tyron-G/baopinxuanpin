@@ -193,7 +193,8 @@ CREATE TABLE team_member (
   permission_level VARCHAR(20) NOT NULL DEFAULT 'editor',
   account_id VARCHAR(64),
   email VARCHAR(120),
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE (brand_id, account_id)
 );
 
 CREATE TABLE team_assignment (

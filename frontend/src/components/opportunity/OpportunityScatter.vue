@@ -70,6 +70,8 @@ let chart: echarts.ECharts | null = null
 let resizeObserver: ResizeObserver | null = null
 
 type AxisBounds = { xMin: number; xMax: number; yMin: number; yMax: number; xMid: number; yMid: number }
+type ScatterPointData = [number, number, number, string, string, string, string]
+type ScatterPointParam = { data: ScatterPointData; dataIndex: number }
 
 function padAxis(min: number, max: number, minSpan = 12) {
   const span = Math.max(max - min, minSpan)
@@ -123,7 +125,7 @@ function labelPosition(gravity: number, resistance: number, bounds: AxisBounds) 
   return 'left'
 }
 
-function toSeriesData(rows: OpportunityPoint[], bounds: AxisBounds) {
+function toSeriesData(rows: OpportunityPoint[], bounds: AxisBounds): ScatterPointData[] {
   return rows.map((row) => [
     row.opportunityGravity,
     resistanceMagnitude(row.competitionResistance),
@@ -150,7 +152,7 @@ function render() {
   chart ||= echarts.init(chartRef.value)
   chart.setOption({
     tooltip: {
-      formatter: (params: any) => {
+      formatter: (params: ScatterPointParam) => {
         const [gravity, resistance, elasticity, , scenario, crowd] = params.data
         const row = props.rows.find((item) => item.scenarioText === scenario)
         const score = row?.opportunityScore ?? '-'
@@ -313,7 +315,7 @@ function render() {
     series: [
       {
         type: 'scatter',
-        symbolSize: (data: number[]) => Math.max(34, data[2] / 1.45),
+        symbolSize: (data: ScatterPointData) => Math.max(34, data[2] / 1.45),
         markLine: {
           silent: true,
           symbol: 'none',
@@ -331,7 +333,7 @@ function render() {
           ]
         },
         itemStyle: {
-          color: (params: any) => {
+          color: (params: ScatterPointParam) => {
             const scenario = params.data[4]
             const score = props.rows.find((row) => row.scenarioText === scenario)?.opportunityScore ?? 0
             if (score >= 60) return '#2f80ed'
@@ -341,7 +343,7 @@ function render() {
         },
         label: {
           show: true,
-          formatter: (params: any) => shortScenarioLabel(props.rows.find((row) => row.scenarioText === params.data[4]) ?? props.rows[0]),
+          formatter: (params: ScatterPointParam) => shortScenarioLabel(props.rows.find((row) => row.scenarioText === params.data[4]) ?? props.rows[0]),
           color: '#5f6f86',
           fontSize: 11,
           fontWeight: 600,
@@ -350,16 +352,16 @@ function render() {
           borderWidth: 1,
           borderRadius: 10,
           padding: [4, 8],
-          position: (params: any) => params.data[6]
+          position: (params: ScatterPointParam) => params.data[6]
         },
         data: toSeriesData(normalRows.value, bounds)
       },
       {
         type: 'scatter',
         z: 3,
-        symbolSize: (data: number[]) => Math.max(42, data[2] / 1.22),
+        symbolSize: (data: ScatterPointData) => Math.max(42, data[2] / 1.22),
         itemStyle: {
-          color: (params: any) => {
+          color: (params: ScatterPointParam) => {
             const scenario = params.data[4]
             const score = props.rows.find((row) => row.scenarioText === scenario)?.opportunityScore ?? 0
             return score >= 90 ? '#e85d58' : '#f2a541'
@@ -372,7 +374,7 @@ function render() {
         },
         label: {
           show: true,
-          formatter: (params: any) => `优先 · ${shortScenarioLabel(props.rows.find((row) => row.scenarioText === params.data[4]) ?? props.rows[0])}`,
+          formatter: (params: ScatterPointParam) => `优先 · ${shortScenarioLabel(props.rows.find((row) => row.scenarioText === params.data[4]) ?? props.rows[0])}`,
           color: '#9a3412',
           fontSize: 11,
           fontWeight: 700,
@@ -381,7 +383,7 @@ function render() {
           borderWidth: 1.5,
           borderRadius: 10,
           padding: [5, 9],
-          position: (params: any) => params.data[6]
+          position: (params: ScatterPointParam) => params.data[6]
         },
         data: toSeriesData(priorityRows.value, bounds)
       }

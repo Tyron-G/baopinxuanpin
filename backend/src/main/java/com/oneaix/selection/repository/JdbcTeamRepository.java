@@ -2,13 +2,14 @@ package com.oneaix.selection.repository;
 
 import com.oneaix.selection.dto.TeamAssignmentItem;
 import com.oneaix.selection.dto.TeamMemberItem;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
-import java.sql.Statement;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /** 团队协作 JDBC 仓储 2026-06-05 */
@@ -61,33 +62,38 @@ public class JdbcTeamRepository {
             String email,
             String accountId
     ) {
-        GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
-        jdbcTemplate.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(
-                    """
-                            INSERT INTO team_member
-                            (brand_id, member_name, role_label, permission_level, account_id, email)
-                            VALUES (?, ?, ?, ?, ?, ?)
-                            """,
-                    Statement.RETURN_GENERATED_KEYS
+        try {
+            GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
+            jdbcTemplate.update(connection -> {
+                PreparedStatement ps = connection.prepareStatement(
+                        """
+                                INSERT INTO team_member
+                                (brand_id, member_name, role_label, permission_level, account_id, email)
+                                VALUES (?, ?, ?, ?, ?, ?)
+                                """,
+                        new String[]{"id"}
+                );
+                ps.setLong(1, brandId);
+                ps.setString(2, memberName);
+                ps.setString(3, roleLabel);
+                ps.setString(4, normalizePermission(permissionLevel));
+                ps.setString(5, accountId);
+                ps.setString(6, email);
+                return ps;
+            }, keyHolder);
+            Number key = generatedId(keyHolder);
+            return new TeamMemberItem(
+                    key == null ? null : key.longValue(),
+                    memberName,
+                    roleLabel,
+                    normalizePermission(permissionLevel),
+                    accountId,
+                    email
             );
-            ps.setLong(1, brandId);
-            ps.setString(2, memberName);
-            ps.setString(3, roleLabel);
-            ps.setString(4, permissionLevel == null || permissionLevel.isBlank() ? "editor" : permissionLevel);
-            ps.setString(5, accountId);
-            ps.setString(6, email);
-            return ps;
-        }, keyHolder);
-        Number key = keyHolder.getKey();
-        return new TeamMemberItem(
-                key == null ? null : key.longValue(),
-                memberName,
-                roleLabel,
-                permissionLevel,
-                accountId,
-                email
-        );
+        } catch (DuplicateKeyException ex) {
+            return findMemberByAccountId(brandId, accountId)
+                    .orElseThrow(() -> ex);
+        }
     }
 
     public List<TeamAssignmentItem> listAssignments(Long brandId) {
@@ -126,7 +132,7 @@ public class JdbcTeamRepository {
                             (brand_id, card_id, action_title, assignee_name, status, approval_status, note)
                             VALUES (?, ?, ?, ?, ?, 'pending', ?)
                             """,
-                    Statement.RETURN_GENERATED_KEYS
+                    new String[]{"id"}
             );
             ps.setLong(1, brandId);
             if (cardId == null) {
@@ -140,7 +146,7 @@ public class JdbcTeamRepository {
             ps.setString(6, note);
             return ps;
         }, keyHolder);
-        Number key = keyHolder.getKey();
+        Number key = generatedId(keyHolder);
         return new TeamAssignmentItem(
                 key == null ? null : key.longValue(),
                 cardId,
@@ -189,6 +195,39 @@ public class JdbcTeamRepository {
         }
         return listAssignments(brandId).stream()
                 .filter(item -> assignmentId.equals(item.id()))
+                .findFirst();
+    }
+
+    /** 兼容 H2 返回 id + created_at 多 generated keys 的情况 2026-06-05 */
+    private Number generatedId(GeneratedKeyHolder keyHolder) {
+        Map<String, Object> keys = keyHolder.getKeys();
+        if (keys == null || keys.isEmpty()) {
+            return keyHolder.getKey();
+        }
+        Object value = keys.get("id");
+        if (value == null) {
+            value = keys.get("ID");
+        }
+        if (value instanceof Number number) {
+            return number;
+        }
+        return keys.values().stream()
+                .filter(Number.class::isInstance)
+                .map(Number.class::cast)
+                .findFirst()
+                .orElse(null);
+    }
+
+    private String normalizePermission(String permissionLevel) {
+        return permissionLevel == null || permissionLevel.isBlank() ? "editor" : permissionLevel;
+    }
+
+    private Optional<TeamMemberItem> findMemberByAccountId(Long brandId, String accountId) {
+        if (accountId == null || accountId.isBlank()) {
+            return Optional.empty();
+        }
+        return listMembers(brandId).stream()
+                .filter(item -> accountId.equals(item.accountId()))
                 .findFirst();
     }
 }

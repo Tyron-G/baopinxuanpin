@@ -39,6 +39,8 @@ const props = defineProps<{ terms: SentimentTerm[] }>()
 const chartRef = ref<HTMLDivElement>()
 let chart: echarts.ECharts | null = null
 let resizeObserver: ResizeObserver | null = null
+type SentimentPointData = [number, number, number, 'positive' | 'negative', string, string]
+type SentimentPointParam = { data: SentimentPointData; dataIndex: number }
 
 const priorityTerms = computed(() => {
   const maxValue = Math.max(...props.terms.map((item) => item.value), 1)
@@ -93,7 +95,7 @@ function render() {
   const highlightedPriorityTerms = props.terms.filter((term) => term.sentiment === 'negative' && term.value >= midValue)
   const normalTerms = props.terms.filter((term) => !(term.sentiment === 'negative' && term.value >= midValue))
 
-  const toSeriesData = (terms: SentimentTerm[]) => terms.map((term) => [
+  const toSeriesData = (terms: SentimentTerm[]): SentimentPointData[] => terms.map((term) => [
     term.value,
     term.sentiment === 'positive' ? 0.72 : -0.72,
     term.value,
@@ -104,7 +106,7 @@ function render() {
 
   chart.setOption({
     tooltip: {
-      formatter: (params: any) => {
+      formatter: (params: SentimentPointParam) => {
         const [, , value, sentiment, name] = params.data
         return `${name}<br/>提及强度：${value}<br/>情感：${sentiment === 'positive' ? '正向' : '负向'}`
       }
@@ -216,15 +218,15 @@ function render() {
     series: [
       {
         type: 'scatter',
-        symbolSize: (data: number[]) => Math.max(28, data[2] / 2.2),
+        symbolSize: (data: SentimentPointData) => Math.max(28, data[2] / 2.2),
         itemStyle: {
-          color: (params: any) => (params.data[3] === 'positive' ? '#1f8f74' : '#d94848'),
+          color: (params: SentimentPointParam) => (params.data[3] === 'positive' ? '#1f8f74' : '#d94848'),
           opacity: 0.8
         },
         data: toSeriesData(normalTerms),
         label: {
           show: true,
-          formatter: (params: any) => `${params.data[4]} ${params.data[2]}`,
+          formatter: (params: SentimentPointParam) => `${params.data[4]} ${params.data[2]}`,
           color: '#5f6f86',
           fontSize: 11,
           fontWeight: 600,
@@ -233,7 +235,7 @@ function render() {
           borderWidth: 1,
           borderRadius: 10,
           padding: [4, 8],
-          position: (params: any) => params.data[5]
+          position: (params: SentimentPointParam) => params.data[5]
         },
         markLine: {
           silent: true,
@@ -248,7 +250,7 @@ function render() {
       {
         type: 'scatter',
         z: 3,
-        symbolSize: (data: number[]) => Math.max(34, data[2] / 2),
+        symbolSize: (data: SentimentPointData) => Math.max(34, data[2] / 2),
         itemStyle: {
           color: '#e35d5b',
           opacity: 0.92,
@@ -260,7 +262,7 @@ function render() {
         data: toSeriesData(highlightedPriorityTerms),
         label: {
           show: true,
-          formatter: (params: any) => `优先 · ${params.data[4]} ${params.data[2]}`,
+          formatter: (params: SentimentPointParam) => `优先 · ${params.data[4]} ${params.data[2]}`,
           color: '#9f1239',
           fontSize: 11,
           fontWeight: 700,
@@ -269,7 +271,7 @@ function render() {
           borderWidth: 1.5,
           borderRadius: 10,
           padding: [5, 9],
-          position: (params: any) => params.data[5]
+          position: (params: SentimentPointParam) => params.data[5]
         }
       }
     ]

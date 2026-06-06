@@ -11,6 +11,7 @@ logs/
 frontend/node_modules/
 frontend/dist/
 frontend/logs/
+frontend/tsconfig.tsbuildinfo
 backend/target/
 backend/logs/
 

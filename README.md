@@ -16,6 +16,14 @@
 
 **环境**：JDK 17+、Maven 3.8+、Node.js 18+
 
+### 推荐：一键启动本地开发环境
+
+```powershell
+pwsh ./scripts/start-dev.ps1
+```
+
+脚本会先启动后端并等待 `/actuator/health` 返回 `UP`，再启动前端，避免前端首屏请求时后端尚未就绪。<!-- 2026-06-05 -->
+
 ### 1. 启动后端（8088）
 
 ```powershell
